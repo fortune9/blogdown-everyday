@@ -1,0 +1,60 @@
+[0m[0K]0;:/e/blogs/blogdown-everyday[?25l
+[0;32mzgzhang@Zhang-T460 [0;35m [0;33m/e/blogs/blogdown-everyday[0m[0K
+$[0K[3G[?25h[?25l$ l[0K[?25hs[0K[?25l
+[0K[?25harchetypes               content    layouts[0K[?25l
+blogdown-everyday.Rproj  data       static[0K
+config.toml              index.Rmd  themes[0K
+[0K[?25h[?25l
+[0;32mzgzhang@Zhang-T460 [0;35m [0;33m/e/blogs/blogdown-everyday[0m[0K
+$[0K[3G[?25h[?25l$ w[0K[?25hh[0Ki[0Kc[0Kh[0K[?25l
+[0K[?25hUsage: which [options] [--] COMMAND [...][0K[?25l
+Write the full path of COMMAND(s) to standard output.[0K
+[0K
+  --version, -[vV] Print version and exit successfully.[0K
+  --help,          Print this help and exit successfully.[0K
+  --skip-dot       Skip directories in PATH that start with a d[0Ko
+t.[0K
+  --skip-tilde     Skip directories in PATH that start with a t[0Ki
+lde.[0K
+  --show-dot       Don't expand a dot to current directory in o[0Ku
+tput.[0K
+  --show-tilde     Output a tilde for HOME directory for non-ro[0Ko
+t.[0K
+  --tty-only       Stop processing options on the right if not [0Ko
+n tty.[0K
+  --all, -a        Print all matches in PATH, not just the firs[0Kt
+[0K
+  --read-alias, -i Read list of aliases from stdin.[0K
+  --skip-alias     Ignore option --read-alias; don't read stdin[0K.
+[0K
+  --read-functions Read shell functions from stdin.[0K
+  --skip-functions Ignore option --read-functions; don't read s[0Kt
+din.[0K
+[0K
+Recommended use is to write the output of (alias; declare -f) t[0Ko
+ standard[0K
+input, so that which can show aliases and shell functions. See [0Kw
+hich(1) for[0K
+examples.[0K
+[0K
+If the options --read-alias and/or --read-functions are specifi[0Ke
+d then the[0K
+output can be a full alias or function definition, optionally f[0Ko
+llowed by[0K
+the full path of each command used inside of those.[0K
+[0K
+Report bugs to <which-bugs@gnu.org>.[0K
+[0K[?25h[?25l
+[0;32mzgzhang@Zhang-T460 [0;35m [0;33m/e/blogs/blogdown-everyday[0m[0K
+$[0K[3G[?25h[?25l$ w[0K[?25hh[0Ki[0Kc[0Kh[0K[9G[?25l$ which l[0K[?25hs[0K[?25l
+[0K[?25h/bin/ls[0K[?25l
+[0K[?25h[?25l
+[0;32mzgzhang@Zhang-T460 [0;35m [0;33m/e/blogs/blogdown-everyday[0m[0K
+$[0K[3G[?25h[?25l$ l[0K[3G[?25h[4G[?25l$ ls[0K[?25h[6G[?25l$ ls /[0K[?25h[?25l
+[0K[?25hLICENSE.txt        dev           mingw64    unins000.dat[0K[?25l
+ReleaseNotes.html  etc           proc       unins000.exe[0K
+bin                git-bash.exe  setup.ini  unins000.msg[0K
+cmd                git-cmd.exe   tmp        usr[0K
+[0K[?25h[?25l
+[0;32mzgzhang@Zhang-T460 [0;35m [0;33m/e/blogs/blogdown-everyday[0m[0K
+$[0K[3G[?25h
