@@ -25,26 +25,26 @@ it with you, so you can also benefit from it.
 
 1. Install the package *blogdown* in Rstudio by typing:
 
-```r
+    ```r
 install.packages("blogdown")
 ```
 
 2. Create a website project by clicking the menus/buttons
 in Rstudio in the following order:
 
-**File** --> **New Project...** --> **New Directory**
+    **File** --> **New Project...** --> **New Directory**
 --> **Website using blogdown**. Then you will see the
 following screen:
 
-![](/post/images/project-window.png)
+    ![](/post/images/project-window.png)
 
-Input the project folder name (say "test-blog") 
+    Input the project folder name (say "test-blog") 
 under "Directory name" 
 and select where to put it by clicking "Browse...".
 And finally click **Create Project**. Keep the other
 options as default.
 
-blogdown will handle the rest, including installing
+    blogdown will handle the rest, including installing
 necessary software.
 
 3. Click the **New Post** under the menu **Addins**,
@@ -61,7 +61,6 @@ repository name is "test-blog" and the github username
 is 'fortune9'. Then, in the command line,
 go to the site folder "test-blog" created in the Step 2,
 and type:
-
 ```bash
 git init
 git add *
