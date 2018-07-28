@@ -2,3 +2,5 @@ node_modules/
 dist/
 public/
 .Rproj.user/
+.Rhistory
+.Rproj.user
