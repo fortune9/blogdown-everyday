@@ -2,7 +2,7 @@ baseurl = "/"
 languageCode = "en-us"
 title = "Zhenguo Zhang's Blog"
 theme = "hugo-lithium"
-googleAnalytics = ""
+googleAnalytics = "UA-123166861-1"
 disqusShortname = "fortune9"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
