@@ -6,33 +6,40 @@ googleAnalytics = "UA-123166861-1"
 disqusShortname = "fortune9"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
+# added settings
+hasCJKLanguage = false # no chinese/japanese/korean in content
+#logFile = "site.log"
+publishDir = "public"
+staticDir = "static"
+themesDir = "themes"
+
 [permalinks]
     post = "/:year/:month/:day/:slug/"
 
 [[menu.main]]
     name = "Home"
     url = "/"
-	weight = 1
+	  weight = 1
 [[menu.main]]
     name = "About"
     url = "/about/"
-	weight = 2
+	  weight = 2
 [[menu.main]]
     name = "GitHub"
     url = "https://github.com/fortune9/blogdown-everyday"
-	weight = 3
+	  weight = 3
 [[menu.main]]
     name = "Twitter"
     url = "https://twitter.com/fortunezhang"
-	weight = 5
+	  weight = 5
 
 [[menu.main]]
     name = "LinkedIn"
     url = "https://www.linkedin.com/in/zhenguo-zhang-418b0220/"
-	weight = 4
+	  weight = 4
 
 [params]
-    description = "A website to share wisdom"
+    description = "A website to lighten lives"
 
     # options for highlight.js (version, additional languages, and theme)
     highlightjsVersion = "9.11.0"
@@ -42,7 +49,9 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
     MathJaxCDN = "//cdn.bootcss.com"
     MathJaxVersion = "2.7.1"
-
+    
+    leftsidebar = false
+    
     [params.logo]
     url = "logo.png"
     width = 50
