@@ -34,6 +34,11 @@ by fusing all the 16 chromosomes grew as well as a wild-type
 different chromosome numbers basically produced inviable
 spores -- productive isolation.
 
+These studies also show that the gene expression profiles
+were not much affected by the number of chromosomes, suggesting
+that the 3-dimension structure or inter-chromosomal interactions
+may not be as important as previously thought in gene regulation.
+
 This is really an exciting progress that we can, for the
 first time, show how an organism with only one chromosome
 behaves. It also triggers several questions for me:
