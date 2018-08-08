@@ -77,7 +77,7 @@ a website. See https://www.netlify.com/blog/2016/09/29/a-step-by-step-guide-depl
 When configurating the settings, keep "Branch" as "master",
 "Dir" as "public", and "Build command" as "hugo".
 
-7. Enjoy your website and blogging.
+7. Enjoy your website and blogging. :smile:
 
 # Afterword
 

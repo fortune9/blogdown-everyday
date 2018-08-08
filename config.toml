@@ -12,6 +12,7 @@ hasCJKLanguage = false # no chinese/japanese/korean in content
 publishDir = "public"
 staticDir = "static"
 themesDir = "themes"
+enableEmoji = true # allow Emoji emotions
 
 [permalinks]
     post = "/:year/:month/:day/:slug/"
