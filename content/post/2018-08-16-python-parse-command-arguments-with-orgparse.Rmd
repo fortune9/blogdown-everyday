@@ -1,0 +1,114 @@
+---
+title: '[Python] Parse command arguments with orgparse'
+author: Zhenguo Zhang
+date: '2018-08-16'
+slug: python-parse-command-arguments-with-orgparse
+categories:
+  - Computing
+tags:
+  - Python
+  - Programming
+---
+
+Parsing command-line arguments is common in programming. 
+In Bash, one can use [getopts](http://wiki.bash-hackers.org/howto/getopts_tutorial).
+In Perl, one can use the module [Getopt::Long](https://perldoc.perl.org/Getopt/Long.html).
+In Python, we can use the package [argparse](https://docs.python.org/3.3/library/argparse.html).
+
+The major steps of using the package include 3 steps:
+
+1. Create a parser.
+2. Add arguments.
+3. Parse the arguments.
+
+Here I will describe each step in details, particularly
+the options of the functions.
+
+## Create a parser
+
+Below is a simple example of creating a parser object.
+
+```
+parser = argparse.ArgumentParser(description="what the program does")
+```
+
+In addition to 'description', the other major options for *argparse.ArgumentParser()* are:
+
+| option | example value | meaning |
+| :----- | :------ | :--- |
+| prog | "myapp.py" | the name of the program, default is *sys.argv[0]* |
+| usage | "usage" | a string describing one-line usage, default is generated from added arguments (see below) |
+| epilog | "text after argument help" | text after help output |
+| parents | [p1, p2] | a list of *ArgumentParser* objects whose arguments will also be added |
+| prefix_chars | '-+' | the characters prefix optional arguments, default is '-' |
+
+By default, the values for 'description' and 'epilog' are
+line-wrapped, so newlines are removed when formatted. This
+can be changed by assigning 'RawDescriptionHelpFormatter'
+or 'RawTextHelpFormatter' to
+the option 'formatter_class', which will show the description string as assigned. The difference between the
+two values is that the latter will replaces multiple concatenated
+newlines with one.
+
+## Add arguments
+
+With the created parser, one can add arguments, like
+
+```
+parser.add_argument("pos_arg", type=str, help="positional arg")
+parser.add_argument("--optional", type=int, default=5, help="optional argument")
+...
+```
+
+The major options for the function *add_argument* are:
+
+| option | example value | meaning |
+| :----- | :------ | :--- |
+| type | int | the type of returned value, default is string |
+| help | "help message" | explanation of the argument |
+| action | 'store' | how to process the option |
+| default | 100 | the default value if not provided |
+| dest | 'myvar' | the attribute name used for extracting the value later |
+| required | False | whether the option is required |
+| nargs | 3 | the number of values expected for an argument, can also be '?', '+', '*' |
+
+When providing options, one can abbreviate the options, as
+long as the prefix matching returns a unique option.
+
+In default, the parser groups positional and optional arguments
+separately when displaying them. One can group the arguments
+manually by creating argument groups, like:
+
+```
+group = parser.add_argument_group("group_name", "group_desc")
+group_add_argument('--foo', help="foo help")
+group_add_argument('bar', help="bar help")
+```
+
+One can use *parser.print_help()* to show what the
+help message will look like eventually.
+
+## Parse arguments
+
+With the parser set up, we can parse the arguments as follows:
+
+```
+args=parser.parse_args();
+```
+
+The above call creates an object with arguments stored
+in attributes. For example, to access the argument 'pos_arg', one can use args.pos_arg, similarly, args.optional for the optional argument.
+
+
+## Advantages
+
+The package will generate usage output automatically when
+user runs the program without any arguments or with the
+option '-h' or '--help'.
+
+## References
+
+1. argparse manual, https://docs.python.org/3.3/library/argparse.html
+
+2. a tutorial, https://docs.python.org/3.3/howto/argparse.html
+

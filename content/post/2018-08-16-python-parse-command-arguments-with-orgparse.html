@@ -1,0 +1,152 @@
+---
+title: '[Python] Parse command arguments with orgparse'
+author: Zhenguo Zhang
+date: '2018-08-16'
+slug: python-parse-command-arguments-with-orgparse
+categories:
+  - Computing
+tags:
+  - Python
+  - Programming
+---
+
+
+
+<p>Parsing command-line arguments is common in programming. In Bash, one can use <a href="http://wiki.bash-hackers.org/howto/getopts_tutorial">getopts</a>. In Perl, one can use the module <a href="https://perldoc.perl.org/Getopt/Long.html">Getopt::Long</a>. In Python, we can use the package <a href="https://docs.python.org/3.3/library/argparse.html">argparse</a>.</p>
+<p>The major steps of using the package include 3 steps:</p>
+<ol style="list-style-type: decimal">
+<li>Create a parser.</li>
+<li>Add arguments.</li>
+<li>Parse the arguments.</li>
+</ol>
+<p>Here I will describe each step in details, particularly the options of the functions.</p>
+<div id="create-a-parser" class="section level2">
+<h2>Create a parser</h2>
+<p>Below is a simple example of creating a parser object.</p>
+<pre><code>parser = argparse.ArgumentParser(description=&quot;what the program does&quot;)</code></pre>
+<p>In addition to ‘description’, the other major options for <em>argparse.ArgumentParser()</em> are:</p>
+<table style="width:28%;">
+<colgroup>
+<col width="9%" />
+<col width="11%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">option</th>
+<th align="left">example value</th>
+<th align="left">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">prog</td>
+<td align="left">“myapp.py”</td>
+<td align="left">the name of the program, default is <em>sys.argv[0]</em></td>
+</tr>
+<tr class="even">
+<td align="left">usage</td>
+<td align="left">“usage”</td>
+<td align="left">a string describing one-line usage, default is generated from added arguments (see below)</td>
+</tr>
+<tr class="odd">
+<td align="left">epilog</td>
+<td align="left">“text after argument help”</td>
+<td align="left">text after help output</td>
+</tr>
+<tr class="even">
+<td align="left">parents</td>
+<td align="left">[p1, p2]</td>
+<td align="left">a list of <em>ArgumentParser</em> objects whose arguments will also be added</td>
+</tr>
+<tr class="odd">
+<td align="left">prefix_chars</td>
+<td align="left">‘-+’</td>
+<td align="left">the characters prefix optional arguments, default is ‘-’</td>
+</tr>
+</tbody>
+</table>
+<p>By default, the values for ‘description’ and ‘epilog’ are line-wrapped, so newlines are removed when formatted. This can be changed by assigning ‘RawDescriptionHelpFormatter’ or ‘RawTextHelpFormatter’ to the option ‘formatter_class’, which will show the description string as assigned. The difference between the two values is that the latter will replaces multiple concatenated newlines with one.</p>
+</div>
+<div id="add-arguments" class="section level2">
+<h2>Add arguments</h2>
+<p>With the created parser, one can add arguments, like</p>
+<pre><code>parser.add_argument(&quot;pos_arg&quot;, type=str, help=&quot;positional arg&quot;)
+parser.add_argument(&quot;--optional&quot;, type=int, default=5, help=&quot;optional argument&quot;)
+...</code></pre>
+<p>The major options for the function <em>add_argument</em> are:</p>
+<table style="width:28%;">
+<colgroup>
+<col width="9%" />
+<col width="11%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">option</th>
+<th align="left">example value</th>
+<th align="left">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">type</td>
+<td align="left">int</td>
+<td align="left">the type of returned value, default is string</td>
+</tr>
+<tr class="even">
+<td align="left">help</td>
+<td align="left">“help message”</td>
+<td align="left">explanation of the argument</td>
+</tr>
+<tr class="odd">
+<td align="left">action</td>
+<td align="left">‘store’</td>
+<td align="left">how to process the option</td>
+</tr>
+<tr class="even">
+<td align="left">default</td>
+<td align="left">100</td>
+<td align="left">the default value if not provided</td>
+</tr>
+<tr class="odd">
+<td align="left">dest</td>
+<td align="left">‘myvar’</td>
+<td align="left">the attribute name used for extracting the value later</td>
+</tr>
+<tr class="even">
+<td align="left">required</td>
+<td align="left">False</td>
+<td align="left">whether the option is required</td>
+</tr>
+<tr class="odd">
+<td align="left">nargs</td>
+<td align="left">3</td>
+<td align="left">the number of values expected for an argument, can also be ‘?’, ‘+’, ’*’</td>
+</tr>
+</tbody>
+</table>
+<p>When providing options, one can abbreviate the options, as long as the prefix matching returns a unique option.</p>
+<p>In default, the parser groups positional and optional arguments separately when displaying them. One can group the arguments manually by creating argument groups, like:</p>
+<pre><code>group = parser.add_argument_group(&quot;group_name&quot;, &quot;group_desc&quot;)
+group_add_argument(&#39;--foo&#39;, help=&quot;foo help&quot;)
+group_add_argument(&#39;bar&#39;, help=&quot;bar help&quot;)</code></pre>
+<p>One can use <em>parser.print_help()</em> to show what the help message will look like eventually.</p>
+</div>
+<div id="parse-arguments" class="section level2">
+<h2>Parse arguments</h2>
+<p>With the parser set up, we can parse the arguments as follows:</p>
+<pre><code>args=parser.parse_args();</code></pre>
+<p>The above call creates an object with arguments stored in attributes. For example, to access the argument ‘pos_arg’, one can use args.pos_arg, similarly, args.optional for the optional argument.</p>
+</div>
+<div id="advantages" class="section level2">
+<h2>Advantages</h2>
+<p>The package will generate usage output automatically when user runs the program without any arguments or with the option ‘-h’ or ‘–help’.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li><p>argparse manual, <a href="https://docs.python.org/3.3/library/argparse.html" class="uri">https://docs.python.org/3.3/library/argparse.html</a></p></li>
+<li><p>a tutorial, <a href="https://docs.python.org/3.3/howto/argparse.html" class="uri">https://docs.python.org/3.3/howto/argparse.html</a></p></li>
+</ol>
+</div>
