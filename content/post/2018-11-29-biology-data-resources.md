@@ -22,9 +22,13 @@ Name | URL | Category | Description
 OncoKB | http://oncokb.org | Cancer | compilation of mutations, drugs, and other tumor data.
 factorbook | http://www.factorbook.org | Regulation | TF binding and histone marks compiled by ENCODE consortium
 ClinGen | https://www.clinicalgenome.org/ | Genetics | Genes and variants relevant to clinics, curated by experts
-
+Regulatory Segmentation | http://uswest.ensembl.org/info/genome/funcgen/regulatory_segmentation.html | Regulation | defined mammalian genomic segments based on epigenomic states
 
 
 ## Articles
+
+Title | Description | URL
+--- | --- | :---
+
 
 ## Others
