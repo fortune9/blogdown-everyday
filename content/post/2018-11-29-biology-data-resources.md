@@ -32,3 +32,8 @@ Title | Description | URL
 
 
 ## Others
+
+Name | Description | URL
+--- | --- | :---
+ChromosomeMappings | map chromosome/contig names across databases | https://github.com/dpryan79/ChromosomeMappings
+
