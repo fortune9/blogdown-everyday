@@ -1,0 +1,16 @@
+---
+title: test Rmarkdown
+author: Zhenguo Zhang
+date: '2019-07-12'
+slug: test-rmarkdown
+categories: []
+tags: []
+---
+
+This post is to test whether Rmarkdown can be deployed
+correctly
+
+```{r test}
+data(cars)
+plot(dist ~ speed, data=cars)
+```
