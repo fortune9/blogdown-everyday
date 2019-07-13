@@ -1,0 +1,104 @@
+---
+title: '[R] fit polynomial regression in R'
+author: "Zhenguo Zhang"
+date: '2019-07-12'
+slug: r-fit-polynomial-regression-in-r
+tags:
+- R
+- regression
+categories:
+- R
+- Computing
+---
+
+In R, we can fit a polynomial model by combinative use two functions
+*poly()* and *lm()*.
+
+## Setup
+
+Let's start with using the R internal data *cars*:
+
+```{r load-data}
+data(cars)
+x<-cars$speed # use the speed as predictor
+y<-cars$dist # use the dist as response
+```
+
+## Fit the models
+
+Now, let's get the polynomials for the variable *x* using the
+degree 3:
+
+```{r poly-data}
+x1<-poly(x, 3, raw=TRUE)
+x2<-poly(x, 3, raw=FALSE)
+# check the resulted polynomials
+head(x)
+head(x1)
+head(x2)
+```
+
+*poly()* returns a matrix, with the first column corresponds to original
+data *x*, second column to the quadratic term *x\^2*, third column to
+the cubic term *x\^3*, etc.
+
+As you see, there are two ways to generate polynomial data for a variable
+using *poly()* in R, depending on the option *raw* is *TRUE* or *FALSE*.
+When it is *TRUE*, the polynomials are simply *x* to the power of respective
+degrees. When it is *FALSE*, the polynomials are further normalized to
+be orthogonal among each other. We will see how different these two ways
+are in model fitting below.
+
+```{r fit-model}
+m1<-lm(y ~ x1)
+m2<-lm(y ~ x2)
+# summarize the models
+summary(m1)
+summary(m2)
+```
+As shown above, the two models are overall the same, both having
+P value = 3.074e-11, F-stat=31.58, and adjusted R-squared=0.6519.
+However, the coefficients of the predictors (x, x^2, and x^3) are
+different, as expected. More importantly, for the model *m1*, none
+of the coefficients are significant, while for *m2*, the coefficient
+of *x* is significant. This can be explained as: in model *m1*, the
+predictors are highly correlated, so the variance of the coefficients
+is much larger than that in model *m2* whose predictors are orthogonal.
+
+## Predict with new data
+
+Let's see how to make predictions using the fitted models.
+
+```{r prediction}
+newx<-seq(min(x),max(x),length.out = 100)
+# convert the newx to polynomials first
+newx1<-predict(x1, newdata = newx) # here x1 is also "poly" class object
+newx2<-predict(x2, newdata = newx)
+# then make predictions using the converted data
+y1<-predict(m1, newdata = list(x1=newx1)) # the newdata follows the format of the original model fitting
+y2<-predict(m2, newdata = list(x2=newx2))
+```
+As you see in the plots below, the predictions from the two models are
+essentially the same and fit the original data very well.
+
+```{r plots}
+# compare y1 and y2
+plot(y1,y2, cex=0.6, col="blue", cex.lab=0.8, cex.axis=0.7, main="Compare predictions from two models")
+abline(0,1,col="black")
+# also check the fit of the prediction with the original data
+plot(x,y, cex=0.6, cex.lab=0.8, cex.axis=0.7, main="model fit on original data")
+lines(newx,y1,col="red")
+legend("topleft",legend="prediction", lty="solid", col="red", cex=0.8)
+```
+
+## Conclusions
+
+1. one can use *poly()* and *lm()* to fit polynomial models in R.
+
+2. actually, one can directly specify *lm(y ~ poly(x, degree))* 
+to fit models. In this case, the new data should also be given
+as raw x without any polynomial conversion.
+
+3. raw and orthogonal transformed polynomials make difference only
+in the term cofficients of models, but have no effect on the predictions.
+
