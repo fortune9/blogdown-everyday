@@ -54,7 +54,7 @@ enableEmoji = true # allow Emoji emotions
     leftsidebar = false
     
     [params.logo]
-    url = "logo.png"
+    url = "logo1.png"
     width = 50
     height = 50
     alt = "Logo"
