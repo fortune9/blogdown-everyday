@@ -1,0 +1,78 @@
+---
+title: '[R] format paragraph output'
+author: "Zhenguo Zhang"
+date: '2019-09-26'
+slug: r-format-paragraph-outout
+tags:
+- R
+- Programming
+categories:
+- Tips
+- R
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=T, comment="", fig.align = "center")
+```
+
+When programming in R, one may print some messages such as usage
+information. When it comes, the base function *[strwrap()](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strwrap.html)*
+becomes very convenient. It can wrap strings into equal-length
+lines and add indentation/prefixes to lines. Here I will demonstrate
+some features.
+
+First, let's create a sample string by reading the first 5 lines
+of the 'THANKS' document in R documentation.
+
+```{r read-data}
+# read 5 lines from the 'THANKS' document
+x <- paste(readLines(file.path(R.home("doc"), "THANKS"),n=5), collapse = "\n")
+print(x)
+```
+
+Let's try formatting the string to lines of 30-character long,
+as shown below:
+
+```{r simple}
+writeLines(strwrap(x, width=30))
+```
+
+Now, let's indent the 1st line of each paragraph
+by using the paramter *indent*.
+
+```{r indent-5}
+writeLines(strwrap(x, 30, indent = 5))
+```
+
+We can indent each line except the first line with the parameter
+*exdent*:
+
+```{r exdent-5}
+writeLines(strwrap(x, 30, exdent = 5))
+```
+Now let's add a prefix to the start of the first paragraph using
+the parameter *initial*:
+
+```{r initial}
+writeLines(strwrap(x, 30, initial = "THANKS: "))
+```
+We can add prefixes to the other lines using *prefix*:
+
+```{r prefix}
+writeLines(strwrap(x, 30, initial = "THANKS: ", prefix = " > "))
+```
+
+All done. Very useful function.
+
+Note: 
+
+1. any whitespaces in input strings are converted to spaces before
+formatting, but double whitespaces are treated differently (see the
+*strwrap* documentation for details).
+
+2. when more than one string is given as inputs, in
+default the result is to concatenate the strings into one text.
+If one wants to keep each string's result separate, use the parameter
+*simplify=F*.
+
+Have R fun!
