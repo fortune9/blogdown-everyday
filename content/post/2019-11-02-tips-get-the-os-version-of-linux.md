@@ -35,4 +35,15 @@ Actually, the command *uname* can output more information than this,
 if you add the option '-a', including kernel name, hostname, and
 processor type. Check the command's manpage for more information.
 
+## Other methods
+
+In addition to *uname*, one can also use the following command to
+output OS information:
+
+```bash
+lsb_release -a
+cat /proc/version
+cat /etc/os-release
+```
+
 Happy computing. :smile:
