@@ -1,0 +1,101 @@
+---
+title: '[Python] Add pushback capacity to generators'
+author: "Zhenguo Zhang"
+date: '2020-06-10'
+slug: python-add-pushback-capacity-to-generators
+tags:
+- Programming
+- Python
+categories: Computing
+---
+
+
+
+<p>Generators are a special kind of functions which return values using the keyword <em>yield</em>. The function itself is actually an iterator, allowing traversing its returned values in a for loop.</p>
+<p>Sometimes, one may want to push back a obtained value to the generator and read again next time. To do so, one can create a iterable class to wrap generators. Below is an example:</p>
+<div id="a-generator" class="section level2">
+<h2>A generator</h2>
+<p>First, let’s construct a generator.</p>
+<pre class="python"><code>def my_generator(max=10):
+    &#39;&#39;&#39;
+    a generator to produce integers until max
+    &#39;&#39;&#39;
+    n=0;
+    while n &lt;= max:
+        yield n;
+        n+=1;</code></pre>
+</div>
+<div id="the-iterable-class-wrapping-a-generator" class="section level2">
+<h2>The iterable class wrapping a generator</h2>
+<p>Now, let’s write a class to wrap the generator.</p>
+<pre class="python"><code>class pushback_wrapper():
+    def __init__(self, gen):
+        self.gen=gen; # store the generator
+        self.stack=[]; # list to store pushed-back values
+        self.allowPush=True;
+
+    def __iter__(self):
+        &#39;&#39;&#39;
+        This function makes this class an iterable, because it adds a
+        function iter()
+        &#39;&#39;&#39;
+        return(self);
+
+    def __next__(self):
+        if self.stack: # return from the stack
+            return self.stack.pop(0);
+        else: # read from the generator
+            try:
+                return next(self.gen);
+            except: # no more values in generator
+                self.allowPush=False;
+                raise StopIteration;
+
+    def push_back(self,val):
+        &#39;&#39;&#39;
+        store pushed-back value
+        &#39;&#39;&#39;
+        if self.allowPush:
+          self.stack.append(val);</code></pre>
+</div>
+<div id="run-the-code" class="section level2">
+<h2>Run the code</h2>
+<p>Finally, let’s try the code. For this purpose, we will output the values from the generator in batch, and each batch is printed when current value is divisible by 3.</p>
+<pre class="python"><code>if __name__ == &#39;__main__&#39;:
+    maxN=10;
+    gen=my_generator(maxN);
+    myIter=pushback_wrapper(gen);
+    record=[];
+    pushed=False;
+    for i in myIter:
+        # printing when reaching 0, 3, 6, ...
+        if i % 3 == 0 and not pushed:
+            myIter.push_back(i);
+            print(&quot;batch {0}:&quot;.format(int(i/3)),&quot;,&quot;.join(record));
+            record=[];
+            pushed=True;
+        else:
+            pushed=False;
+            record.append(str(i));
+    if record:
+        print(&quot;Last: &quot; + &quot;,&quot;.join(record));
+
+    print(f&quot;Job done for max={maxN}&quot;);</code></pre>
+<pre><code>## batch 0: 
+## batch 1: 0,1,2
+## batch 2: 3,4,5
+## batch 3: 6,7,8
+## Last: 9,10
+## Job done for max=10</code></pre>
+<p>As you can see, we used <em>push_back()</em> to store back the value when it is divisible by 3, and it is read again in next loop step.</p>
+<p>This same trick can be used for any other iterators.</p>
+</div>
+<div id="reference" class="section level2">
+<h2>Reference</h2>
+<p>I am inspired by the following webpages:</p>
+<ol style="list-style-type: decimal">
+<li><a href="https://codereview.stackexchange.com/questions/178797/generator-iterator-with-push-back-function" class="uri">https://codereview.stackexchange.com/questions/178797/generator-iterator-with-push-back-function</a></li>
+<li><a href="https://www.programiz.com/python-programming/iterator" class="uri">https://www.programiz.com/python-programming/iterator</a></li>
+</ol>
+<p>Thank you. Happy programming :smile:</p>
+</div>
