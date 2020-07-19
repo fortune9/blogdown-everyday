@@ -1,0 +1,80 @@
+---
+title: '[R] Use variables in RMarkdown chunk options'
+author: "Zhenguo Zhang"
+date: '2020-07-18'
+slug: r-use-variables-in-rmarkdown-chunk-options
+categories: R
+tags:
+- R Markdown
+- R
+---
+
+
+One can use variables as chunk options, which gives convenience
+in controlling the document appearance programmatically. Normally
+one need set up a variable in prior chunks to use it in current
+chunk. Here is an example.
+
+## The code
+
+````markdown
+`r ''````{r set-var, eval=F}
+cat("Chunk 1")
+outWid="50%"  
+```
+````
+
+````markdown
+`r ''````{r plot1, fig.cap=paste("out.width =", outWid), out.width=outWid}
+cat("Chunk 2")
+outWid="20%"
+plot(1:10)
+```
+````
+
+````markdown
+`r ''````{r plot2, fig.cap=paste("out.width =", outWid), out.width=outWid}
+cat("Chunk 3")
+plot(1:10)
+```
+````
+
+## The output
+
+
+```{r set-var}
+cat("Chunk 1")
+outWid="50%"
+```
+
+```{r plot1, fig.cap=paste("out.width =", outWid), out.width=paste(outWid,"",sep="")}
+cat("Chunk 2")
+outWid="20%"
+plot(1:10)
+```
+
+```{r plot2, fig.cap=paste("out.width =", outWid), out.width=outWid}
+cat("Chunk 3")
+plot(1:10)
+```
+
+## The conlusion
+
+Here we change the value of the variable *outWid* by chunks and use
+it to control the output width of plots.
+
+In chunk 1, we set it to "50%" and use it for the 2nd chunk, and
+then in the 2nd chunk we set it to "20%" and use it for the 3rd chunk.
+As you see, the plot output changed accordingly.
+
+## More on the chunk options
+
+You may notice that the value for *fig.cap* in the 2nd chunk 
+actually uses the value set in the 2nd chunk ("20%" here), rather
+than the value set in prior chunk. This suggests that some chunk
+values settle before running its chunk (such as out.width) and some
+are settled after running the chunk (such as fig.cap). So pay attention
+when using variables for chunk options.
+
+Happy coding. :smile:
+
