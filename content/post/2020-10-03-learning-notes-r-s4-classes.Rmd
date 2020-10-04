@@ -1,0 +1,159 @@
+---
+title: '[Learning notes] R S4 classes'
+author: Zhenguo Zhang
+date: '2020-10-03'
+slug: learning-notes-r-s4-classes
+categories:
+  - R
+  - Computing
+tags:
+  - R
+  - Programming
+---
+
+There are three kinds of classes in R, S3, S4, and RC (or R6). The S3 class is simply
+created by adding a 'class' attribute to an object. The S4 class is stricter and need
+formally created, but it is still different from the classes in other object-oriented
+programming languages such as Java, in terms of class inheritance and method dispatch.
+The RC/R6 classes are more like the classes in Java. One can find more information on
+the differences at https://adv-r.hadley.nz/oo-tradeoffs.html.
+
+Today I will share what I learned by showing an example of using S4 classes.
+
+## Create S4 classes
+
+All the methods used for creating S4 classes and methods are in the
+R package [methods](https://rdrr.io/r/methods/methods-package.html).
+
+To create a class, we use the *setClass* method.
+
+```{r create}
+# create a class called 'Shape', with two slots
+Shape<-setClass("Shape", 
+	slots=c(name="character",sides="numeric"),
+	prototype=list(name=NA_character_, sides=NA_real_))
+(shape1<-Shape(name="triangle", sides=3))
+```
+
+As you see above, we created a class called 'Shape' and assigned the
+generator to a function with the same name 'Shape'. Then we create
+a shape object 'shape1' with the generator.
+
+## Add methods
+
+Next we add some methods to the class. The code is as below:
+
+```{r methods}
+# set generic first
+setGeneric(
+  "plotIt",
+  function(obj) {
+    standardGeneric("plotIt")
+  }
+)
+# then we add a method for this generic
+setMethod("plotIt",
+          "Shape",
+          function(obj) {
+            cat(sprintf("This is a %s with %d sides", obj@name, obj@sides))
+          })
+# and call this method on 'shape1' created above
+plotIt(shape1)
+```
+
+As you see, we first created a generic function *plotIt* using
+*setGeneric()*. Any class can implement this generic function by following
+the same argument list. If the generic one wants to implement
+has already existed or imported from other packages. This step
+should be omitted.
+
+Following it, we implemented a method for the class *Shape*
+using *setMethod()*. Here this method just simply prints out
+the information of the object.
+
+Next we will add some subclasses and implement *plotIt* method
+on them.
+
+## Subclasses
+
+To create subclasses, it is very simple: we still use *setClass()*
+function, but we will use an argument *contains=parent*, which will
+include all slots from parent class. Here we will create two subclasses,
+triangle and square.
+
+```{r subclasses}
+triangle<-setClass("triangle",
+                   contains="Shape",
+                   slots=c(edgeLen="numeric"),
+                   prototype = c(name="triangle",
+                                 sides=3
+                                # edgeLen=NA_real_
+                                 )
+                   )
+square<-setClass("square",
+                 contains = "Shape",
+                 slots=c(width="numeric"),
+                 prototype = c(name="square",
+                               sides=4,
+                               width=NA_real_))
+# add plotIt method
+setMethod("plotIt",
+          signature("triangle"),
+          function(obj) {
+            cat(sprintf("This is a %s with %d sides [%s]", 
+                obj@name, obj@sides, paste0(obj@edgeLen,collapse=",")));
+            plot(1,pch=2, cex=10, axes=F, main="Triangle",xlab=NA, ylab=NA)
+          }
+          )
+
+setMethod("plotIt",
+          signature("square"),
+          function(obj) {
+            cat(sprintf("This is a %s with %d equal sides = %s",
+                  obj@name, obj@sides, obj@width));
+            plot(1,pch=0, cex=10, axes=F, main="Square",xlab=NA,ylab=NA)
+          }
+          )
+
+# create two objects
+triangle1<-triangle(edgeLen=c(1,1,1.5))
+square1<-square(width=10)
+# call the method
+plotIt(triangle1);
+plotIt(square1)
+```
+
+As you see above, we created two subclasses *triangle* and *square*,
+and also add *plotIt* method for each (note that the plot doesn't use
+the object's slot information, solely for demonstration purpose).
+After that, we create two objects and called the method.
+
+## S4 method dispatch
+
+Here we have very simple class hierarchy, so it is easy to know
+which method is called for each object. When class inheritance
+levels go up, it becomes more complicated and may cause ambiguity
+on which method to be called.
+
+Briefly, when a method is called, it first tries to match the 
+class of the actual arguments
+in a call to the available methods collected for a generic, 
+here ‘plotIt’.  If there is
+a method defined for the exact same classes as in this call, that
+method is used.  
+
+If there is no method for the given arguments, then all possible
+signatures are considered, including
+the actual classes or to superclasses of the actual classes 
+(including ‘"ANY"’).  The method having the least
+distance from the actual classes is chosen; if more than one
+method has minimal distance, one is chosen (the lexicographically
+first in terms of superclasses) but a warning is issued.  All
+inherited methods chosen are stored in another table, so that the
+inheritance calculations only need to be done once per session per
+sequence of actual classes.
+
+Well, I'll stop here for this post. It shows how to create S4
+classes and methods. One interesting in this topic may look into
+a document by Bioconductor community at https://bioconductor.org/help/course-materials/2017/Zurich/S4-classes-and-methods.html.
+

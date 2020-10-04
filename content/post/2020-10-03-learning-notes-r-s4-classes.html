@@ -1,0 +1,153 @@
+---
+title: '[Learning notes] R S4 classes'
+author: Zhenguo Zhang
+date: '2020-10-03'
+slug: learning-notes-r-s4-classes
+categories:
+  - R
+  - Computing
+tags:
+  - R
+  - Programming
+---
+
+
+
+<p>There are three kinds of classes in R, S3, S4, and RC (or R6). The S3 class is simply
+created by adding a ‘class’ attribute to an object. The S4 class is stricter and need
+formally created, but it is still different from the classes in other object-oriented
+programming languages such as Java, in terms of class inheritance and method dispatch.
+The RC/R6 classes are more like the classes in Java. One can find more information on
+the differences at <a href="https://adv-r.hadley.nz/oo-tradeoffs.html" class="uri">https://adv-r.hadley.nz/oo-tradeoffs.html</a>.</p>
+<p>Today I will share what I learned by showing an example of using S4 classes.</p>
+<div id="create-s4-classes" class="section level2">
+<h2>Create S4 classes</h2>
+<p>All the methods used for creating S4 classes and methods are in the
+R package <a href="https://rdrr.io/r/methods/methods-package.html">methods</a>.</p>
+<p>To create a class, we use the <em>setClass</em> method.</p>
+<pre class="r"><code># create a class called &#39;Shape&#39;, with two slots
+Shape&lt;-setClass(&quot;Shape&quot;, 
+    slots=c(name=&quot;character&quot;,sides=&quot;numeric&quot;),
+    prototype=list(name=NA_character_, sides=NA_real_))
+(shape1&lt;-Shape(name=&quot;triangle&quot;, sides=3))</code></pre>
+<pre><code>## An object of class &quot;Shape&quot;
+## Slot &quot;name&quot;:
+## [1] &quot;triangle&quot;
+## 
+## Slot &quot;sides&quot;:
+## [1] 3</code></pre>
+<p>As you see above, we created a class called ‘Shape’ and assigned the
+generator to a function with the same name ‘Shape’. Then we create
+a shape object ‘shape1’ with the generator.</p>
+</div>
+<div id="add-methods" class="section level2">
+<h2>Add methods</h2>
+<p>Next we add some methods to the class. The code is as below:</p>
+<pre class="r"><code># set generic first
+setGeneric(
+  &quot;plotIt&quot;,
+  function(obj) {
+    standardGeneric(&quot;plotIt&quot;)
+  }
+)</code></pre>
+<pre><code>## [1] &quot;plotIt&quot;</code></pre>
+<pre class="r"><code># then we add a method for this generic
+setMethod(&quot;plotIt&quot;,
+          &quot;Shape&quot;,
+          function(obj) {
+            cat(sprintf(&quot;This is a %s with %d sides&quot;, obj@name, obj@sides))
+          })
+# and call this method on &#39;shape1&#39; created above
+plotIt(shape1)</code></pre>
+<pre><code>## This is a triangle with 3 sides</code></pre>
+<p>As you see, we first created a generic function <em>plotIt</em> using
+<em>setGeneric()</em>. Any class can implement this generic function by following
+the same argument list. If the generic one wants to implement
+has already existed or imported from other packages. This step
+should be omitted.</p>
+<p>Following it, we implemented a method for the class <em>Shape</em>
+using <em>setMethod()</em>. Here this method just simply prints out
+the information of the object.</p>
+<p>Next we will add some subclasses and implement <em>plotIt</em> method
+on them.</p>
+</div>
+<div id="subclasses" class="section level2">
+<h2>Subclasses</h2>
+<p>To create subclasses, it is very simple: we still use <em>setClass()</em>
+function, but we will use an argument <em>contains=parent</em>, which will
+include all slots from parent class. Here we will create two subclasses,
+triangle and square.</p>
+<pre class="r"><code>triangle&lt;-setClass(&quot;triangle&quot;,
+                   contains=&quot;Shape&quot;,
+                   slots=c(edgeLen=&quot;numeric&quot;),
+                   prototype = c(name=&quot;triangle&quot;,
+                                 sides=3
+                                # edgeLen=NA_real_
+                                 )
+                   )
+square&lt;-setClass(&quot;square&quot;,
+                 contains = &quot;Shape&quot;,
+                 slots=c(width=&quot;numeric&quot;),
+                 prototype = c(name=&quot;square&quot;,
+                               sides=4,
+                               width=NA_real_))
+# add plotIt method
+setMethod(&quot;plotIt&quot;,
+          signature(&quot;triangle&quot;),
+          function(obj) {
+            cat(sprintf(&quot;This is a %s with %d sides [%s]&quot;, 
+                obj@name, obj@sides, paste0(obj@edgeLen,collapse=&quot;,&quot;)));
+            plot(1,pch=2, cex=10, axes=F, main=&quot;Triangle&quot;,xlab=NA, ylab=NA)
+          }
+          )
+
+setMethod(&quot;plotIt&quot;,
+          signature(&quot;square&quot;),
+          function(obj) {
+            cat(sprintf(&quot;This is a %s with %d equal sides = %s&quot;,
+                  obj@name, obj@sides, obj@width));
+            plot(1,pch=0, cex=10, axes=F, main=&quot;Square&quot;,xlab=NA,ylab=NA)
+          }
+          )
+
+# create two objects
+triangle1&lt;-triangle(edgeLen=c(1,1,1.5))
+square1&lt;-square(width=10)
+# call the method
+plotIt(triangle1);</code></pre>
+<pre><code>## This is a NA with NA sides [1,1,1.5]</code></pre>
+<p><img src="/post/2020-10-03-learning-notes-r-s4-classes_files/figure-html/subclasses-1.png" width="672" /></p>
+<pre class="r"><code>plotIt(square1)</code></pre>
+<pre><code>## This is a NA with NA equal sides = 10</code></pre>
+<p><img src="/post/2020-10-03-learning-notes-r-s4-classes_files/figure-html/subclasses-2.png" width="672" /></p>
+<p>As you see above, we created two subclasses <em>triangle</em> and <em>square</em>,
+and also add <em>plotIt</em> method for each (note that the plot doesn’t use
+the object’s slot information, solely for demonstration purpose).
+After that, we create two objects and called the method.</p>
+</div>
+<div id="s4-method-dispatch" class="section level2">
+<h2>S4 method dispatch</h2>
+<p>Here we have very simple class hierarchy, so it is easy to know
+which method is called for each object. When class inheritance
+levels go up, it becomes more complicated and may cause ambiguity
+on which method to be called.</p>
+<p>Briefly, when a method is called, it first tries to match the
+class of the actual arguments
+in a call to the available methods collected for a generic,
+here ‘plotIt’. If there is
+a method defined for the exact same classes as in this call, that
+method is used.</p>
+<p>If there is no method for the given arguments, then all possible
+signatures are considered, including
+the actual classes or to superclasses of the actual classes
+(including ‘“ANY”’). The method having the least
+distance from the actual classes is chosen; if more than one
+method has minimal distance, one is chosen (the lexicographically
+first in terms of superclasses) but a warning is issued. All
+inherited methods chosen are stored in another table, so that the
+inheritance calculations only need to be done once per session per
+sequence of actual classes.</p>
+<p>Well, I’ll stop here for this post. It shows how to create S4
+classes and methods. One interesting in this topic may look into
+a document by Bioconductor community at <a href="https://bioconductor.org/help/course-materials/2017/Zurich/S4-classes-and-methods.html" class="uri">https://bioconductor.org/help/course-materials/2017/Zurich/S4-classes-and-methods.html</a>.</p>
+</div>
