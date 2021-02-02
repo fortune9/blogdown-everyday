@@ -1,0 +1,174 @@
+---
+title: '[R] Arrange images in a table'
+author: "Zhenguo Zhang"
+date: '2021-02-01'
+slug: r-arrange-images-into-a-table
+categories:
+- R
+- Computing
+tags:
+- Programming
+- R Markdown
+- R
+---
+
+<script src="{{< blogdown/postref >}}index_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index_files/lightable/lightable.css" rel="stylesheet" />
+
+
+<pre class="r"><code>library(knitr)
+library(kableExtra)</code></pre>
+<p>Sometimes, we need arrange images into a grid. I know two
+approaches for this. One is to manually fill table cells
+with strings like <code>![](path/to/img)</code>, and the other is
+to use function <em>column_spec(column, image=vector_of_files)</em>
+from <a href="https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html">kableExtra</a>.</p>
+<p>In this post, I am going to show both approaches.</p>
+<p>First, let’s generate some figures.</p>
+<div id="generating-figures" class="section level2">
+<h2>Generating figures</h2>
+<p>We will use the builtin dataset <em>mtcars</em>.</p>
+<pre class="r"><code>figFiles&lt;-file.path(
+                    c(&quot;scatter.png&quot;,&quot;hist.png&quot;,
+                      &quot;boxplot.png&quot;,&quot;density.png&quot;,
+                      &quot;barplot.png&quot;,&quot;line.png&quot;)
+                    )
+i=1;
+width=5;
+height=5;
+unit=&quot;in&quot;;
+dpi=300;
+png(figFiles[i], width=width, height = height, units = unit, res = dpi)
+with(mtcars, plot(mpg ~ cyl, main=&quot;scatter plot&quot;))
+tmp&lt;-dev.off()
+i&lt;-i+1;
+png(figFiles[i], width=width, height = height, units = unit, res = dpi)
+with(mtcars, hist(cyl, main=&quot;hist plot&quot;))
+tmp&lt;-dev.off()
+i&lt;-i+1;
+png(figFiles[i], width=width, height = height, units = unit, res = dpi)
+with(mtcars, boxplot(hp ~ as.factor(cyl), main=&quot;boxplot&quot;))
+tmp&lt;-dev.off()
+i&lt;-i+1;
+png(figFiles[i], width=width, height = height, units = unit, res = dpi)
+with(mtcars, plot(density(wt), main=&quot;density plot&quot;))
+tmp&lt;-dev.off()
+i&lt;-i+1;
+png(figFiles[i], width=width, height = height, units = unit, res = dpi)
+with(mtcars, barplot(table(gear), col=&quot;blue&quot;, main=&quot;barplot&quot;))
+tmp&lt;-dev.off()
+i&lt;-i+1;
+png(figFiles[i], width=width, height = height, units = unit, res = dpi)
+with(mtcars, boxplot(hp ~ as.factor(cyl), main=&quot;boxplot&quot;))
+tmp&lt;-dev.off()</code></pre>
+</div>
+<div id="put-images-into-a-table-using-manual-fill" class="section level2">
+<h2>Put images into a table using manual fill</h2>
+<pre class="r"><code>md_img&lt;-function(f)
+{
+  mdStr&lt;-paste0(sprintf(&#39;![](%s)&#39;, f),&#39;{width=100%}&#39;)
+  #mdStr&lt;-include_graphics(f)
+  return(mdStr)
+}
+mat&lt;-matrix(sapply(figFiles, md_img),nc=2, byrow = T)
+kbl(mat, table.attr = &#39;style=&quot;width:80%;&quot;&#39;, caption=&quot;Image markdown&quot;) %&gt;%
+  kable_styling(full_width = T, position=&quot;center&quot;) %&gt;%
+  column_spec(1:2, width=&quot;50%&quot;)</code></pre>
+<table style="width:80%; margin-left: auto; margin-right: auto;" class="table">
+<caption>
+<span id="tab:img-mat-md">Table 1: </span>Image markdown
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;width: 50%; ">
+<img src="scatter.png" style="width:100.0%" />
+</td>
+<td style="text-align:left;width: 50%; ">
+<img src="hist.png" style="width:100.0%" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 50%; ">
+<img src="boxplot.png" style="width:100.0%" />
+</td>
+<td style="text-align:left;width: 50%; ">
+<img src="density.png" style="width:100.0%" />
+</td>
+</tr>
+<tr>
+<td style="text-align:left;width: 50%; ">
+<img src="barplot.png" style="width:100.0%" />
+</td>
+<td style="text-align:left;width: 50%; ">
+<img src="line.png" style="width:100.0%" />
+</td>
+</tr>
+</tbody>
+</table>
+<p>Here we created a help function ‘md_img()’ to embed each figure
+file into a markdown string, and then we arrange the resulted
+strings into a matrix with 3 columns. Finally, we use <em>kableExtra</em>
+to render the table.</p>
+</div>
+<div id="use-column_spec-to-arrange-images" class="section level2">
+<h2>Use column_spec to arrange images</h2>
+<pre class="r"><code>mat&lt;-data.frame(col1=rep(&quot;&quot;,3), col2=&quot;&quot;)
+mat %&gt;%
+  kbl(caption=&quot;Image table by column_spec&quot;, booktabs = T, table.attr = &#39;style=&quot;width:80%;&quot;&#39;) %&gt;%
+  kable_styling() %&gt;%
+  column_spec(1, image=spec_image(figFiles[1:3], width = 900, height=900)) %&gt;%
+  column_spec(2, image=spec_image(figFiles[4:6], width = 900, height = 900))</code></pre>
+<table style="width:80%; margin-left: auto; margin-right: auto;" class="table">
+<caption>
+<span id="tab:img-mat-cs">Table 2: </span>Image table by column_spec
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+col1
+</th>
+<th style="text-align:left;">
+col2
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<img src="scatter.png" width="288" height="288">
+</td>
+<td style="text-align:left;">
+<html>
+<body>
+<img src="density.png" width="288" height="288">
+</body>
+</html>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<img src="hist.png" width="288" height="288">
+</td>
+<td style="text-align:left;">
+<html>
+<body>
+<img src="barplot.png" width="288" height="288">
+</body>
+</html>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+<img src="boxplot.png" width="288" height="288">
+</td>
+<td style="text-align:left;">
+<html>
+<body>
+<img src="line.png" width="288" height="288">
+</body>
+</html>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
