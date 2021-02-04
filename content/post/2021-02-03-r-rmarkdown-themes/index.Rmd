@@ -1,0 +1,74 @@
+---
+title: '[R] Rmarkdown themes'
+author: Zhenguo Zhang
+date: '2021-02-03'
+slug: r-rmarkdown-themes
+categories:
+  - R
+tags:
+  - R Markdown
+  - R
+---
+
+[Rmarkdown](https://rmarkdown.rstudio.com) is a powerful tool to
+write documents once and can generate different kinds of output
+formats such as PDF, html, docx, etc.
+
+Along with it, there are many resources for using the 
+[*rmarkdown*](https://cran.r-project.org/web/packages/rmarkdown).
+One of them is tons of themes for shaping the output style.
+
+For the *html_document* output, in addition to the default
+theme, there are other builtin ones, including: “cerulean”, “cosmo”, “flatly”, “journal”, “lumen”, “paper”, “readable”, “sandstone”, “simplex”, “spacelab”, “united”, and “yeti”.
+
+To change the theme, use the following code in YAML header:
+
+```
+title: 'theme test'
+author: "Your name"
+date: '2021-02-01'
+output:
+  html_document:
+    theme: united
+```
+
+In addition to the builtin themes, there are many packages 
+providing extra themes, such as [rmdformats](https://github.com/juba/rmdformats),
+[prettydoc](https://yixuan.cos.name/prettydoc/),
+[hrbrthemes](https://github.com/hrbrmstr/hrbrthemes),
+[tufte](https://github.com/rstudio/tufte), and
+[tint](http://dirk.eddelbuettel.com/code/tint.html).
+
+For using these external themes, one need install the package
+first, and then use the following YAML code to activate them
+(use rmdformats::readthedown as an example):
+
+```
+title: 'theme test'
+author: "Your name"
+date: '2021-02-01'
+output:
+  rmdformats::readthedown:
+    toc_depth: 3
+```
+
+Note that the output format changes to the theme name
+(here *rmdformats::readthedown*), one can actually check
+the corresponding theme function [rmdformats::readthedown()]
+to see available options for the theme.
+
+With themes, the output style change is much easier, for example,
+the theme *rmdformats::readthedown* provides a float table of
+contents to the left page panel and different background colors
+for the panels.
+
+One can see effects of more themes [here](https://www.datadreaming.org/post/r-markdown-theme-gallery/).
+
+Happy coding!
+
+## References
+
+1. R markdown theme gallery: https://www.datadreaming.org/post/r-markdown-theme-gallery/.
+
+2. rmdformats themes: https://github.com/juba/rmdformats.
+

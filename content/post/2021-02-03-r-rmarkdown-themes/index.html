@@ -1,0 +1,61 @@
+---
+title: '[R] Rmarkdown themes'
+author: Zhenguo Zhang
+date: '2021-02-03'
+slug: r-rmarkdown-themes
+categories:
+  - R
+tags:
+  - R Markdown
+  - R
+---
+
+
+
+<p><a href="https://rmarkdown.rstudio.com">Rmarkdown</a> is a powerful tool to
+write documents once and can generate different kinds of output
+formats such as PDF, html, docx, etc.</p>
+<p>Along with it, there are many resources for using the
+<a href="https://cran.r-project.org/web/packages/rmarkdown"><em>rmarkdown</em></a>.
+One of them is tons of themes for shaping the output style.</p>
+<p>For the <em>html_document</em> output, in addition to the default
+theme, there are other builtin ones, including: “cerulean”, “cosmo”, “flatly”, “journal”, “lumen”, “paper”, “readable”, “sandstone”, “simplex”, “spacelab”, “united”, and “yeti”.</p>
+<p>To change the theme, use the following code in YAML header:</p>
+<pre><code>title: &#39;theme test&#39;
+author: &quot;Your name&quot;
+date: &#39;2021-02-01&#39;
+output:
+  html_document:
+    theme: united</code></pre>
+<p>In addition to the builtin themes, there are many packages
+providing extra themes, such as <a href="https://github.com/juba/rmdformats">rmdformats</a>,
+<a href="https://yixuan.cos.name/prettydoc/">prettydoc</a>,
+<a href="https://github.com/hrbrmstr/hrbrthemes">hrbrthemes</a>,
+<a href="https://github.com/rstudio/tufte">tufte</a>, and
+<a href="http://dirk.eddelbuettel.com/code/tint.html">tint</a>.</p>
+<p>For using these external themes, one need install the package
+first, and then use the following YAML code to activate them
+(use rmdformats::readthedown as an example):</p>
+<pre><code>title: &#39;theme test&#39;
+author: &quot;Your name&quot;
+date: &#39;2021-02-01&#39;
+output:
+  rmdformats::readthedown:
+    toc_depth: 3</code></pre>
+<p>Note that the output format changes to the theme name
+(here <em>rmdformats::readthedown</em>), one can actually check
+the corresponding theme function [rmdformats::readthedown()]
+to see available options for the theme.</p>
+<p>With themes, the output style change is much easier, for example,
+the theme <em>rmdformats::readthedown</em> provides a float table of
+contents to the left page panel and different background colors
+for the panels.</p>
+<p>One can see effects of more themes <a href="https://www.datadreaming.org/post/r-markdown-theme-gallery/">here</a>.</p>
+<p>Happy coding!</p>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li><p>R markdown theme gallery: <a href="https://www.datadreaming.org/post/r-markdown-theme-gallery/" class="uri">https://www.datadreaming.org/post/r-markdown-theme-gallery/</a>.</p></li>
+<li><p>rmdformats themes: <a href="https://github.com/juba/rmdformats" class="uri">https://github.com/juba/rmdformats</a>.</p></li>
+</ol>
+</div>
