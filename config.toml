@@ -1,7 +1,7 @@
 baseurl = "/"
 languageCode = "en-us"
 title = "Zhenguo Zhang's Blog"
-theme = "hugo-lithium"
+theme = "hugo-theme-diary"
 googleAnalytics = "UA-123166861-1"
 disqusShortname = "fortune9"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
@@ -11,7 +11,6 @@ hasCJKLanguage = false # no chinese/japanese/korean in content
 #logFile = "site.log"
 publishDir = "public"
 staticDir = "static"
-themesDir = "themes"
 enableEmoji = true # allow Emoji emotions
 
 [permalinks]
@@ -39,6 +38,21 @@ enableEmoji = true # allow Emoji emotions
     url = "https://www.linkedin.com/in/zhenguo-zhang-418b0220/"
 	  weight = 4
 
+[[menu.main]]
+    url = "/categories"
+    name = "Categories"
+    weight = 6
+
+[[menu.main]]
+    url = "/tags"
+    name = "Tags"
+    weight = 7
+
+[[menu.main]]
+    url = "/posts"
+    name = "Archive"
+    weight = 8
+
 [params]
     description = "A website to lighten lives"
 
@@ -47,9 +61,12 @@ enableEmoji = true # allow Emoji emotions
     highlightjsCDN = "//cdn.bootcss.com"
     highlightjsLang = ["r", "yaml"]
     highlightjsTheme = "github"
-
+    
+    enableMathJax=true
     MathJaxCDN = "//cdn.bootcss.com"
     MathJaxVersion = "2.7.1"
+    # google search
+    googleSearchCode = "https://cse.google.com/cse.js?cx=a688ecc156c78aa42"
     
     leftsidebar = false
     
@@ -59,3 +76,19 @@ enableEmoji = true # allow Emoji emotions
     height = 50
     alt = "Logo"
 
+[taxonomies]
+   tag = "tags"
+   category = "categories"
+
+# code hightlight
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = true
+    hl_Lines = ""
+    lineNoStart = 1
+    lineNos = true
+    lineNumbersInTable = true
+    noClasses = true
+    style = "monokai"
+    tabWidth = 4
