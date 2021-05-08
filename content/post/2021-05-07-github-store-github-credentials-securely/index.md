@@ -108,6 +108,15 @@ gpg --generate-key
 # follow the instruction to finish the key generation
 ``
 
+**For gpg works properly, one may also need do the following
+setting**:
+
+* put `export GPG_TTY=$(tty)` to file '~/.bashrc'.
+* in '~/.gnupg/gpg-agent.conf', specifying the pin-entry
+  program, such as `pinentry-program /usr/bin/pinentry-tty`.
+  One can replace this with others, choice of which can be
+  found by running `ls /usr/bin/ | grep pinentry`.
+
 Remember the key uid, say "myid@gmail.com", which will be
 used in next step.
 
@@ -161,7 +170,18 @@ If one wants a certain github account or repository use
 a specific password, it can replace 'github.com/*' with
 corresponding URL patterns, such as 'github.com/githubid/*'.
 
-6. Finally, test it.
+6. Setup the .gitconfig file to use the helper 'pass-git-helper'
+
+One can refer to the section [Windows](#windows) for how to
+setup '~/.gitconfig' file. Other than that, one can run
+the following command to add the helper:
+
+```bash
+git config --global credential.helper '!pass-git-helper $@'
+# or edit '~/.gitconfig' to add this option
+```
+
+7. Finally, test it.
 
 Find a github repository, and run `git push` to test it.
 It should not prompt any password.
