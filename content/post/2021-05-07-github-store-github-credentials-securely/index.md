@@ -1,14 +1,14 @@
 ---
 title: '[github] store github credentials securely'
-author: Zhenguo Zhang
+author: "Zhenguo Zhang"
 date: '2021-05-07'
 slug: github-store-github-credentials-securely
 categories:
-  - Computing
-  - Tips
+- Computing
+- Tips
 tags:
-  - Programming
-  - github
+- Programming
+- github
 description: ''
 featured_image: ''
 images: []
@@ -106,7 +106,7 @@ Let's start.
 ```bash
 gpg --generate-key
 # follow the instruction to finish the key generation
-``
+```
 
 **For gpg works properly, one may also need do the following
 setting**:
