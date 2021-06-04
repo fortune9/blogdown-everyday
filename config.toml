@@ -3,7 +3,6 @@ languageCode = "en-us"
 title = "Zhenguo Zhang's Blog"
 theme = "hugo-theme-diary"
 googleAnalytics = "UA-123166861-1"
-disqusShortname = "fortune9"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 # added settings
@@ -65,9 +64,12 @@ enableEmoji = true # allow Emoji emotions
     MathJaxCDN = "//cdnjs.cloudflare.com/ajax/libs/mathjax"
     MathJaxVersion = "3.0.0"
     # google search
-    googleSearchCode = "https://cse.google.com/cse.js?cx=a688ecc156c78aa42"
+    # googleSearchCode = "https://cse.google.com/cse.js?cx=a688ecc156c78aa42"
+	googleSearchCode = "a688ecc156c78aa42"
     
     leftsidebar = false
+	comment = true
+	disqusShortname = "fortune9-netlify"
     
     [params.logo]
     url = "logo1.png"
