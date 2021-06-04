@@ -112,6 +112,74 @@ fi
 R_LIBS_USER=$rLib NO_Main_Lib=T R $@
 ```
 
+Alternatively, one can put the following code into a file
+named 'load_r', and also put the file into a folder in the
+environment variable '$PATH', and call 'source load_r <r-version>'. In
+this way, the script will modify the environment variables
+such as '$PATH' and '$R_LIBS_USER', so that one can trigger
+the programs 'R' and 'Rscript' normally. Actually, this
+approach is preferred.
+
+```bash
+# filename: load_r
+if [[ "$0" == "$BASH_SOURCE" ]]; then
+    echo "Must source this script"
+    echo "Do: source $BASH_SOURCE <r-version>"
+    exit 1;
+fi
+
+## functions
+function join() {
+    local IFS="$1"
+    shift
+    echo -e "$*"
+}
+
+## global variables
+rVersions=(4.0.0 4.1.0)
+rRoot=/opt/R
+rPkgRoot=$HOME/RLib # the root directory containing all libraries
+
+if [[ $# -lt 1 ]]; then
+    echo "
+Usage: $0 <r-version> [<r-user-lib>]
+
+This program sets the environment variables for a given R version,
+including:
+
+1. modify PATH to prepend the 'bin' folder of the given R.
+2. set R_LIBS_USER to the given value <r-user-lib>.
+
+The supported R versions are:
+`join "/" "${rVersions[@]}"`
+
+Example use:
+
+$0 4.0.0
+
+"
+    return 2
+fi
+
+rV=$1
+defaultLib=$rPkgRoot/$rV # default is R/R.version$platform-library/x.y for R x.y.z
+rLib=${2:-$defaultLib}
+rBin=$rRoot/$rV/bin
+
+if [[ ! -x $rBin/R ]]; then
+  echo "Executable '$rBin/R' doesn't exist. Check R version is supported"
+  return 3;
+fi
+
+echo "Prepending $rBin to PATH"
+export PATH=$rBin:$PATH
+echo "Set R_LIBS_USER to $rLib"
+mkdir -p $rLib && export R_LIBS_USER=$rLib
+
+echo Done.
+```
+
+
 Congratulations. You have multiple versions of R now.
 
 Happy programming!
