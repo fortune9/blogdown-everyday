@@ -64,8 +64,8 @@ enableEmoji = true # allow Emoji emotions
     MathJaxCDN = "//cdnjs.cloudflare.com/ajax/libs/mathjax"
     MathJaxVersion = "3.0.0"
     # google search
-    # googleSearchCode = "https://cse.google.com/cse.js?cx=a688ecc156c78aa42"
-	googleSearchCode = "a688ecc156c78aa42"
+	# <script async src="https://cse.google.com/cse.js?cx=a57129bb44552a6f6"></script>
+	googleSearchCode = "a57129bb44552a6f6"
     
     leftsidebar = false
 	comment = true
