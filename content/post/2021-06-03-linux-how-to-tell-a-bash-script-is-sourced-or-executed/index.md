@@ -61,6 +61,7 @@ if sourced, as shown in the above code.
 2. exit and return: calling 'exit' when sourcing a script will
     close the terminal, use 'return' instead.
     
+
 ## References
 
 1. Discussion of '$BASH_SOURCE' on stackoverflow: https://stackoverflow.com/questions/41837948/can-a-bash-script-determine-if-its-been-sourced
