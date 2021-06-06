@@ -99,4 +99,11 @@ enableEmoji = true # allow Emoji emotions
 
 # add plugins
 [[plugins]]
-package = "@netlify/plugin-sitemap"
+	package = "@netlify/plugin-sitemap"
+	# see configuration here https://github.com/netlify-labs/netlify-plugin-sitemap
+	[plugins.inputs]
+		exclude=[
+			./google3759aac0a838253c.html
+			./robots.txt
+		]
+		prettyURLs = false
