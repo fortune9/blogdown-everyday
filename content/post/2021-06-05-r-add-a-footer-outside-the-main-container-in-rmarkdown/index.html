@@ -1,0 +1,98 @@
+---
+title: '[R] Add a footer outside the main-container in Rmarkdown'
+author: Zhenguo Zhang
+date: '2021-06-05'
+slug: r-add-a-footer-outside-the-main-container-in-rmarkdown
+categories:
+  - R
+  - Tips
+tags:
+  - R Markdown
+  - R
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<p>Normally, in the html output of an Rmarkdown document,
+the <code>&lt;body&gt;...&lt;/body&gt;</code> tag encloses a <code>&lt;div&gt;...&lt;/div&gt;</code>
+with class ‘main-container’ which hold the main content.
+When one add a footer with the following YAML header, it
+will appear at the bottom of the page as expected:</p>
+<pre><code>output: 
+  html_document:
+    includes:
+      after_body: resource/footer/banner.html</code></pre>
+<p>However, this may lead to problems when the main-container
+is in a frame or a mini-page: the added footer will fill to
+the width of the frame, but not to the width of the page.</p>
+<p>To have a footer to fill the full width of a page, one has
+two options: one is to modify the Rmarkdown template used
+for building output, and the other is to use javascript to
+arrange the page component. Here, I will demonstrate the second
+option, and readers can click <a href="https://github.com/rstudio/rmarkdown/issues/1761">here</a>
+for more details on the first option.</p>
+<pre class="js"><code>$(function() {
+  $(&#39;.main-container&#39;).after($(&#39;.footer&#39;));
+})</code></pre>
+<script type="text/javascript">
+$(function() {
+  $('.main-container').after($('.footer'));
+})
+</script>
+<p>The above javascript will put components with
+`class=“footer”’ after the class ‘main-container’.</p>
+<p>To have the footer in the right place, we also need
+set up css rules:</p>
+<pre class="css"><code>html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 70px; # leave space for the footer
+}
+.footer {
+  position: absolute; # keep it always at bottom
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+  padding: 10px 5px;
+  background: yellow;
+}</code></pre>
+<style type="text/css">
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 70px; # leave space for the footer
+}
+.footer {
+  position: absolute; # keep it always at bottom
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+  padding: 10px 5px;
+  background: yellow;
+}
+</style>
+<p>Now let’s add a footer using custom block:</p>
+<pre><code>::: {.footer}
+A footer created with Javascript
+[Contact](mailto:zhangz.sci@gmail.com)
+:::</code></pre>
+<p>Alternatively, one can use <code>htmltools::includeHTML(file)</code>
+to add raw html code if the footer is stored in a file.</p>
+<p>:smile: :clap:</p>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li>Discussion of this topic at github: <a href="https://github.com/rstudio/rmarkdown/issues/1761" class="uri">https://github.com/rstudio/rmarkdown/issues/1761</a></li>
+</ol>
+</div>
