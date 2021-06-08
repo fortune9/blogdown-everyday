@@ -1,7 +1,8 @@
 baseurl = "/"
 languageCode = "en-us"
 title = "Zhenguo Zhang's Blog"
-theme = "hugo-theme-diary"
+# theme = "hugo-theme-diary"
+theme = "diary"
 # googleAnalytics = "UA-123166861-1"
 # use analytics from zhangz.sci
 googleAnalytics = "G-V3XZ2FMMBQ"
