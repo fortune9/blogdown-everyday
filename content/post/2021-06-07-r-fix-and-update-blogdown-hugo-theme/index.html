@@ -1,0 +1,131 @@
+---
+title: '[R] fix and update blogdown hugo theme'
+author: Zhenguo Zhang
+date: '2021-06-07'
+slug: r-fix-and-update-blogdown-hugo-theme
+categories:
+  - Blogging
+  - Tips
+tags:
+  - blogdown
+  - Hugo
+  - R
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<p>Today, I fixed one big issue in my blog – the missing
+‘google fonts’, from which I learned a lot, and I will
+share here and hope the experience to help others.</p>
+<div id="the-issue" class="section level2">
+<h2>The issue</h2>
+<p>As you will see from the two pictures below, the left
+one shows the google fonts as their words (see the items
+in the red loop), such as ‘chevron_right’ and ‘brightness_7’.
+And the picture on the right is correct.</p>
+<p><img src="/images/bad-google-fonts.png" style="width:40%;border:1px solid black" alt="bad fonts" />
+<img src="/images/good-google-fonts.png" style="width:40%;border:1px solid black" alt="good fonts" /></p>
+<p>For more information on “google fonts”, check <a href="https://fonts.google.com/icons?selected=Material+Icons:chevron_left&amp;icon.query=chevron">here</a>.</p>
+<p>The theme used for the blog is <em>diary</em>, and it can be found at
+<a href="https://github.com/AmazingRise/hugo-theme-diary" class="uri">https://github.com/AmazingRise/hugo-theme-diary</a>.</p>
+</div>
+<div id="how-to-fix-the-issue" class="section level2">
+<h2>How to fix the issue</h2>
+<div id="first-try" class="section level3">
+<h3>First try</h3>
+<p>First, I updated the theme using the following command:</p>
+<pre class="bash"><code># get into the root directory of my blog project
+## create a new folder themes/diary to download the theme from github
+git submodule add https://github.com/AmazingRise/hugo-theme-diary.git themes/diary
+## update the theme
+git submodule update --remote --merge</code></pre>
+<p>This didn’t fix the problem. But since my old theme version was
+downloaded two years ago, this step still helps me to have updated
+theme version. The advantage of using <code>git submodule update</code>
+instead of R’s <code>blogdown::install_theme()</code> is that it makes update
+in future easier, simply run the second command above.</p>
+</div>
+<div id="second-try" class="section level3">
+<h3>Second try</h3>
+<p>After I examined the source code of the deployed website at
+<a href="https://fortune9.netlify.app">Netlify</a> using Firefox’s <code>Inspect</code>
+tool, I found that my page
+can’t load a javascript file: it said ‘loadCSS is not defined’,
+which is a function to load a css file from
+<a href="https://fonts.googleapis.com/css" class="uri">https://fonts.googleapis.com/css</a>. And this function is supposed
+defined in a javascript file: ‘/js/loadCSS.js’. I noticed that
+in the downloaded deployment zip file, there is no ‘loadCSS.js’,
+but ‘loadcss.js’ under the folder ‘/js’, so I thought that
+the filename may be changed to lowercase when deployed in Netlify
+and this might causing the file not be loaded.</p>
+<p>Given this, I modified the file ‘/layouts/partials/head.html’
+to load the javascript file with lowercase filename, as below:</p>
+<pre><code># old
+&lt;script src=&quot;{{&quot;.Site.BaseURL/js/loadCSS.js&quot;}}&quot;&gt;&lt;/script&gt;
+# new
+&lt;script src=&quot;{{&quot;.Site.BaseURL/js/loadcss.js&quot;}}&quot;&gt;&lt;/script&gt;</code></pre>
+<p>However, this still didn’t work.</p>
+</div>
+<div id="third-try" class="section level3">
+<h3>Third try</h3>
+<p>Although failed in second try, I was on the right track. After
+further examining the source code of deployed website,
+I realized that it was trying to load ‘//js/loadCSS.js’, which
+looks like an absolute path, and this is further confirmed by
+noticing that the <code>baseurl</code> was set to ‘/’ in ‘config.toml’
+file.</p>
+<p>I finally realized that this was caused by the file
+‘/layouts/partials/head.html’, which was used to override
+the file in ‘/themes/diary/layouts/partials/head.html’.
+However, this file was generated when I used old theme
+and I added google ads code into it. In the new file
+‘/themes/diary/layouts/partials/head.html’, the adding
+‘/js/loadCSS.js’ statement has changed to:</p>
+<pre><code>&lt;script src=&quot;{{&quot;/js/loadCSS.js&quot; | relURL}}&quot;&gt;&lt;/script&gt;</code></pre>
+<p>Obviously, it is using relative URL (more info on hugo
+function relURL can be found <a href="https://gohugo.io/functions/relurl/">here</a>).</p>
+<p>So I deleted the overriding file ‘/layouts/partials/head.html’,
+and added another file ‘/layouts/partials/extended_head.html’,
+in which I put my custom code (googld ads, etc). The
+‘extended_head.html’ file was the suggested file to put custom
+code, avoiding editing/overriding ‘head.html’.</p>
+<p>This time, I succeeded.</p>
+</div>
+</div>
+<div id="learned-lessons" class="section level2">
+<h2>Learned lessons</h2>
+<ol style="list-style-type: decimal">
+<li><p>When updating themes, make sure the old files in the root
+folder ‘layouts’ are also updated accordingly.</p></li>
+<li><p>When making big changes to website, such as changing themes,
+one had better use a separate github branch to make the changes, and
+make a pull request to the main branch. When this pull request
+is sent, Netlify will also deploy a preview. After the preview
+looks good, then one can merge the request into the main branch
+in github. This saves the hassles in case the change caused
+big issues.</p></li>
+<li><p>One can use <code>git submodules</code> to manage a git repo under another
+repository, allowing updating each repo independently. This
+feature makes updating the themes much easier; however, themes
+update is not recommended by Yihui as new changes may not one
+wants. Thus check the look of a theme before update to it.</p></li>
+<li><p>Downloading the deployment from Netlify helps one understand
+how a website is structured, and will provide clues in debugging
+issues.</p></li>
+</ol>
+<p>My sharing stops here today. Have fun in programming! :smile:</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li><p>updating themes using git submodules: <a href="https://bookdown.org/yihui/blogdown/version-control.html" class="uri">https://bookdown.org/yihui/blogdown/version-control.html</a></p></li>
+<li><p>recommendation on updating blogdown themes: <a href="https://bookdown.org/yihui/blogdown/other-themes.html" class="uri">https://bookdown.org/yihui/blogdown/other-themes.html</a></p></li>
+<li><p>github page of diary theme: <a href="https://github.com/AmazingRise/hugo-theme-diary" class="uri">https://github.com/AmazingRise/hugo-theme-diary</a></p></li>
+<li><p>an article on filenames in Netlify deployment: <a href="https://answers.netlify.com/t/support-guide-netlify-app-builds-locally-but-fails-on-deploy-case-sensitivity/10754" class="uri">https://answers.netlify.com/t/support-guide-netlify-app-builds-locally-but-fails-on-deploy-case-sensitivity/10754</a></p></li>
+</ol>
+</div>
