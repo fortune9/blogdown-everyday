@@ -20,25 +20,25 @@ enableEmoji = true # allow Emoji emotions
 
 [[menu.main]]
     name = "Home"
-    url = "/"
+    url = "/home/"
 	  weight = 1
+[[menu.main]]
+    name = "Blog"
+    url = "/"
+	  weight = 2
 [[menu.main]]
     name = "About"
     url = "/about/"
-	  weight = 2
+	  weight = 3
 [[menu.main]]
     name = "GitHub"
     url = "https://github.com/fortune9/blogdown-everyday"
-	  weight = 3
-[[menu.main]]
-    name = "Twitter"
-    url = "https://twitter.com/fortunezhang"
-	  weight = 5
+	  weight = 4
 
 [[menu.main]]
     name = "LinkedIn"
     url = "https://www.linkedin.com/in/zhenguo-zhang-418b0220/"
-	  weight = 4
+	  weight = 5
 
 [[menu.main]]
     url = "/categories"
@@ -49,11 +49,6 @@ enableEmoji = true # allow Emoji emotions
     url = "/tags"
     name = "Tags"
     weight = 7
-
-[[menu.main]]
-    url = "/posts"
-    name = "Archive"
-    weight = 8
 
 [params]
 	subtitle = "Sharing makes life better"

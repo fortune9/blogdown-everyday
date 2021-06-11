@@ -1,11 +1,11 @@
 ---
 title: "About"
-date: "2018-07-27"
+date: "2021-06-10"
 ---
 
 This is Zhenguo Zhang's blog site created using the [**blogdown**](https://github.com/rstudio/blogdown) package.
-The theme was forked from [@jrutheiser/hugo-lithium-theme](https://github.com/jrutheiser/hugo-lithium-theme) and modified by [Yihui Xie](https://github.com/yihui/hugo-lithium). Thanks
-for the authors of these great tools.
+The theme was forked from [@AmazingRise/hugo-theme-diary](https://github.com/AmazingRise/hugo-theme-diary)
+Thanks for the authors of these great tools.
 
 # About myself
 
