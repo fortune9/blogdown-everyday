@@ -1,0 +1,86 @@
+---
+title: '[R] Use trelliscopejs to arrange plots'
+author: "Zhenguo Zhang"
+date: '2021-08-12'
+slug: r-use-trelliscopejs-to-arrange-plots
+categories:
+- R
+- Software
+tags:
+- blogdown
+- R
+- R Markdown
+- plot
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="{{< blogdown/postref >}}index_files/trelliscopejs_widget/trelliscope.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/trelliscopejs_widget-binding/trelliscopejs_widget.js"></script>
+
+
+<p>Trelliscope is an R package which interfacing a Javascript library
+<a href="https://github.com/hafen/trelliscopejs-lib">trelliscopejs</a>. This
+library provides an visulization of data by splitting them into
+subsets, also called ‘Trellis Display’ or “small multiples”.</p>
+<p>The R package provides some high-level functions such as
+<code>facet_trelliscope()</code> which can directly replace the function
+<code>ggplot2::facet_wrap()</code> when making plots. The advantage of the
+former is that it can create multiple pages of plots when there
+are many, but <code>facet_wrap()</code> will put them into one plot. Also
+the trelliscope plot is an interactive htmlwidget, so users can
+sort, filter, and arrange the plots.</p>
+<p>Let’s start with a demo.</p>
+<div id="facet_trelliscope" class="section level2">
+<h2>facet_trelliscope</h2>
+<p>Here we use the function <code>facet_trelliscope()</code> to wrap
+around plots based on the data in <code>mtcars</code>.</p>
+<pre class="r"><code>library(trelliscopejs)</code></pre>
+<pre><code>## Warning: package &#39;trelliscopejs&#39; was built under R version 4.0.5</code></pre>
+<pre class="r"><code>library(ggplot2)
+ggplot(data=mtcars, aes(x=wt,y=mpg)) + geom_point() +
+  facet_trelliscope(~am + gear, nrow=1, ncol = 2,
+                    name=&quot;Test trelliscope&quot;, desc=&quot;This is desc&quot;,
+                    self_contained = F, path=&quot;.&quot;,
+                    as_plotly = F)</code></pre>
+<pre><code>## using data from the first layer</code></pre>
+<div id="htmlwidget-1" style="width:900px;height:550px;" class="trelliscopejs_widget html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"id":"35e2db46","config_info":"'./appfiles/config.jsonp'","self_contained":false,"latest_display":{"name":"Test_trelliscope","group":"common"},"spa":false,"in_knitr":true,"in_shiny":false,"in_notebook":false},"evals":[],"jsHooks":[]}</script>
+<p>As you can see, the usage is pretty straightforward. In the
+trelliscope panel, one can change the grid and sort the plots
+based on precomputed metrics. Here we have only 4 plots, so
+its power to organize many plots is not well demonstrated, but
+the principle is the same.</p>
+<p>Notes on the arguments of <code>facet_trelliscope()</code>:</p>
+<ul>
+<li><p><code>~am + gear</code>: the formula to facet the panels. Check
+<code>ggplot2::facet_wrap()</code> for more details.</p></li>
+<li><p><code>nrow</code> and <code>ncol</code>: the number of rows and columns for
+the panel grid to initally display.</p></li>
+<li><p><code>name</code> and <code>desc</code>: the main title and description for the
+trellis display.</p></li>
+<li><p><code>self_contained</code>: set to TRUE when to include all the
+plots in the output html file; otherwise a folder ‘appfiles’
+is produced to store the plots and is needed when browsing the
+output html file. However, if the plots are plotly format
+(when argument <code>as_plotly</code> is TRUE), this doesn’t work and
+<code>self_contained</code> need be set to ‘FALSE’, as done here.</p></li>
+<li><p><code>path</code>: this is the base directory for the trelliscope
+display to work; basically it relies on this to find ‘appfiles’
+folder. This must be set to ‘.’ when trelliscope display is
+embedded in Rmarkdown file, just like here.</p></li>
+<li><p><code>as_plotly</code>: make plots as interactive plotly objects.</p></li>
+</ul>
+<p>This function also have many other arguments, which can be
+checked from its help page.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ol style="list-style-type: decimal">
+<li>Introduction to trelliscopejs: <a href="https://cran.r-project.org/web/packages/trelliscopejs/vignettes/trelliscopejs.html" class="uri">https://cran.r-project.org/web/packages/trelliscopejs/vignettes/trelliscopejs.html</a></li>
+</ol>
+</div>

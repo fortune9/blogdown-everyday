@@ -1,0 +1,91 @@
+---
+title: '[R] Use trelliscopejs to arrange plots'
+author: "Zhenguo Zhang"
+date: '2021-08-12'
+slug: r-use-trelliscopejs-to-arrange-plots
+categories:
+- R
+- Software
+tags:
+- blogdown
+- R
+- R Markdown
+- plot
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Trelliscope is an R package which interfacing a Javascript library
+[trelliscopejs](https://github.com/hafen/trelliscopejs-lib). This
+library provides an visulization of data by splitting them into
+subsets, also called 'Trellis Display' or "small multiples".
+
+The R package provides some high-level functions such as
+`facet_trelliscope()` which can directly replace the function
+`ggplot2::facet_wrap()` when making plots. The advantage of the
+former is that it can create multiple pages of plots when there
+are many, but `facet_wrap()` will put them into one plot. Also
+the trelliscope plot is an interactive htmlwidget, so users can
+sort, filter, and arrange the plots.
+
+Let's start with a demo.
+
+## facet_trelliscope
+
+Here we use the function `facet_trelliscope()` to wrap
+around plots based on the data in `mtcars`.
+
+```{r}
+library(trelliscopejs)
+library(ggplot2)
+ggplot(data=mtcars, aes(x=wt,y=mpg)) + geom_point() +
+  facet_trelliscope(~am + gear, nrow=1, ncol = 2,
+                    name="Test trelliscope", desc="This is desc",
+                    self_contained = F, path=".",
+                    as_plotly = F)
+```
+
+As you can see, the usage is pretty straightforward. In the 
+trelliscope panel, one can change the grid and sort the plots
+based on precomputed metrics. Here we have only 4 plots, so
+its power to organize many plots is not well demonstrated, but
+the principle is the same.
+
+Notes on the arguments of `facet_trelliscope()`:
+
+* `~am + gear`: the formula to facet the panels. Check 
+  `ggplot2::facet_wrap()` for more details.
+
+* `nrow` and `ncol`: the number of rows and columns for
+  the panel grid to initally display.
+  
+* `name` and `desc`: the main title and description for the
+  trellis display.
+  
+* `self_contained`: set to TRUE when to include all the
+  plots in the output html file; otherwise a folder 'appfiles'
+  is produced to store the plots and is needed when browsing the
+  output html file. However, if the plots are plotly format
+  (when argument `as_plotly` is TRUE), this doesn't work and
+  `self_contained` need be set to 'FALSE', as done here.
+
+* `path`: this is the base directory for the trelliscope
+  display to work; basically it relies on this to find 'appfiles'
+  folder. This must be set to '.' when trelliscope display is
+  embedded in Rmarkdown file, just like here.
+  
+* `as_plotly`: make plots as interactive plotly objects.
+
+This function also have many other arguments, which can be
+checked from its help page.
+
+
+## References
+
+1. Introduction to trelliscopejs: https://cran.r-project.org/web/packages/trelliscopejs/vignettes/trelliscopejs.html
