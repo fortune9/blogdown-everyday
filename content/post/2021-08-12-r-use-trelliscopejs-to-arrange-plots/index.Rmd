@@ -44,6 +44,7 @@ around plots based on the data in `mtcars`.
 ```{r}
 library(trelliscopejs)
 library(ggplot2)
+library(htmltools)
 ggplot(data=mtcars, aes(x=wt,y=mpg)) + geom_point() +
   facet_trelliscope(~am + gear, nrow=1, ncol = 2,
                     name="Test trelliscope", desc="This is desc",
@@ -51,7 +52,14 @@ ggplot(data=mtcars, aes(x=wt,y=mpg)) + geom_point() +
                     as_plotly = F)
 ```
 
-**Unfortunately, this plot doesn't work at present in blogdown deploy, even after upgrading all R packages and hugo. Will look into this later**
+```{r}
+tags$iframe(src="/trelliscope_out/index.html", width="100%", height="400px")
+```
+
+**Unfortunately, this plot doesn't work at present in blogdown deploy, even after upgrading all R packages and hugo. Will look into this later. As a temporary solution, I generated this plot
+into a file and saved it into static/trelliscope_out/index.html
+along with its dependencies, and then embed this file using
+iframe as above.**
 
 As you can see, the usage is pretty straightforward. In the 
 trelliscope panel, one can change the grid and sort the plots
