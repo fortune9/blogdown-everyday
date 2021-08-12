@@ -41,15 +41,17 @@ sort, filter, and arrange the plots.</p>
 around plots based on the data in <code>mtcars</code>.</p>
 <pre class="r"><code>library(trelliscopejs)</code></pre>
 <pre><code>## Warning: package &#39;trelliscopejs&#39; was built under R version 4.0.5</code></pre>
-<pre class="r"><code>library(ggplot2)
-ggplot(data=mtcars, aes(x=wt,y=mpg)) + geom_point() +
+<pre class="r"><code>library(ggplot2)</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.0.5</code></pre>
+<pre class="r"><code>ggplot(data=mtcars, aes(x=wt,y=mpg)) + geom_point() +
   facet_trelliscope(~am + gear, nrow=1, ncol = 2,
                     name=&quot;Test trelliscope&quot;, desc=&quot;This is desc&quot;,
                     self_contained = F, path=&quot;.&quot;,
                     as_plotly = F)</code></pre>
 <pre><code>## using data from the first layer</code></pre>
 <div id="htmlwidget-1" style="width:900px;height:550px;" class="trelliscopejs_widget html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"id":"35e2db46","config_info":"'./appfiles/config.jsonp'","self_contained":false,"latest_display":{"name":"Test_trelliscope","group":"common"},"spa":false,"in_knitr":true,"in_shiny":false,"in_notebook":false},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"id":"d5b9e3f1","config_info":"'./appfiles/config.jsonp'","self_contained":false,"latest_display":{"name":"Test_trelliscope","group":"common"},"spa":false,"in_knitr":true,"in_shiny":false,"in_notebook":false},"evals":[],"jsHooks":[]}</script>
+<p><strong>Unfortunately, this plot doesn’t work at present in blogdown deploy, even after upgrading all R packages and hugo. Will look into this later</strong></p>
 <p>As you can see, the usage is pretty straightforward. In the
 trelliscope panel, one can change the grid and sort the plots
 based on precomputed metrics. Here we have only 4 plots, so
@@ -67,8 +69,8 @@ trellis display.</p></li>
 plots in the output html file; otherwise a folder ‘appfiles’
 is produced to store the plots and is needed when browsing the
 output html file. However, if the plots are plotly format
-(when argument <code>as_plotly</code> is TRUE), this doesn’t work and
-<code>self_contained</code> need be set to ‘FALSE’, as done here.</p></li>
+(when argument <code>as_plotly</code> is TRUE), this argument can’t be
+‘TRUE’ because this would not work.</p></li>
 <li><p><code>path</code>: this is the base directory for the trelliscope
 display to work; basically it relies on this to find ‘appfiles’
 folder. This must be set to ‘.’ when trelliscope display is

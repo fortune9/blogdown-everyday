@@ -51,6 +51,8 @@ ggplot(data=mtcars, aes(x=wt,y=mpg)) + geom_point() +
                     as_plotly = F)
 ```
 
+**Unfortunately, this plot doesn't work at present in blogdown deploy, even after upgrading all R packages and hugo. Will look into this later**
+
 As you can see, the usage is pretty straightforward. In the 
 trelliscope panel, one can change the grid and sort the plots
 based on precomputed metrics. Here we have only 4 plots, so
@@ -72,8 +74,8 @@ Notes on the arguments of `facet_trelliscope()`:
   plots in the output html file; otherwise a folder 'appfiles'
   is produced to store the plots and is needed when browsing the
   output html file. However, if the plots are plotly format
-  (when argument `as_plotly` is TRUE), this doesn't work and
-  `self_contained` need be set to 'FALSE', as done here.
+  (when argument `as_plotly` is TRUE), this argument can't be
+  'TRUE' because this would not work.
 
 * `path`: this is the base directory for the trelliscope
   display to work; basically it relies on this to find 'appfiles'
