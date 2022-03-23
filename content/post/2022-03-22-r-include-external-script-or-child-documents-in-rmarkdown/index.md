@@ -29,7 +29,7 @@ or chunk option `file`.
 
 ### Method 1: use `source()` or `sys.source()`
 
-````markdown
+````md
 ```{r, include=F}
 source("external.R", local=knitr::knit_global())
 # or sys.source("external.R", envir=knitr::knit_global())
@@ -47,7 +47,7 @@ away if one use the chunk option `file`.
 
 ### Method 2: use chunk option `file`
 
-````markdown
+````md
 ```{r, file="external.R"}
 ```
 ````
@@ -63,7 +63,7 @@ use the function `knitr::knit_child()`.
 
 ### Use chunk option `child`
 
-````r
+````md
 ```{r, child="child.Rmd"}
 ```
 ````
@@ -72,7 +72,7 @@ With this method, one can conditionally include a
 document given that all chunk options can take values
 from arbitrary R expressions. For example:
 
-````r
+````md
 ```{r, child=if(x>10) 'child1.Rmd' else 'child2.Rmd'}
 ```
 ````
@@ -83,15 +83,18 @@ from arbitrary R expressions. For example:
 document to a character vector of markdown format, which can be printed
 out into current document directly, like below:
 
+````md
 ```{r, echo=FALSE, results='asis'}
 knitStr <- knitr::knit_child('child.Rmd', quiet = TRUE)
 cat(knitStr, sep = '\n')
 ```
+````
 
 I hope that this summary gives you some ideas of how
 to include external documents in an Rmarkdown document.
 From here, you can dig deeper by reading other documents
 such as the link listed at [Reference](#reference).
+
 
 ## Reference
 
