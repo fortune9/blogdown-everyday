@@ -80,6 +80,23 @@ install the official R. The steps are as follows:
    During this step, you may find errors such as the package 'httr' isn't
    available. If this happens, try to install this manually.
 
+## Solutions 2
+
+**Updated on 08/19/2022**
+
+Another way to fix the issue is to install the right version
+of BLAS and LAPACK in conda. Here we change the BLAS
+implementation from *openblas* to *netlib* using the following
+command and it worked for *minfi*:
+
+```
+conda install "libblas=*=*netlib" -c conda-forge
+```
+
+One can find more details about different versions of BLAS
+implementations at [here](https://conda-forge.org/docs/maintainer/knowledge_base.html#blas).
+
+
 ## Methods not working
 
 1. installing *bioconductor-minfi* package using conda.
