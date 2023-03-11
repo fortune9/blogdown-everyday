@@ -1,11 +1,11 @@
 ---
 title: "About"
-date: "2021-06-10"
+date: "2023-03-10"
 ---
 
 This is Zhenguo Zhang's blog site created using the [**blogdown**](https://github.com/rstudio/blogdown) package.
 The theme was forked from [@AmazingRise/hugo-theme-diary](https://github.com/AmazingRise/hugo-theme-diary)
-Thanks for the authors of these great tools.
+Thank the authors of these great tools.
 
 # About myself
 
@@ -15,8 +15,8 @@ Zhenguo Zhang
 
 ## Position
 
-Bioinformatics Scientist at
-[Zymo Research](https://www.zymoresearch.com/)
+Actively looking for a position of Senior Bioinformatics
+Scientist or equivalent.
 
 ## Email
 
@@ -26,6 +26,7 @@ zhangz.sci@gmail.com
 
 * Statistics
 * Programming
+* Disease diagnosis and treatment
 * Molecular evolution
 * God
 
