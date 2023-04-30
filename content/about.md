@@ -13,11 +13,6 @@ Thank the authors of these great tools.
 
 Zhenguo Zhang
 
-## Position
-
-Actively looking for a position of Senior Bioinformatics
-Scientist or equivalent.
-
 ## Email
 
 zhangz.sci@gmail.com
