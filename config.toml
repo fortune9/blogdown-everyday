@@ -72,6 +72,8 @@ enableEmoji = true # allow Emoji emotions
 	comment = true
 	disqusShortname = "fortune9-netlify"
     
+    enableReadingTime = true
+    
 [params.logo]
     url = "logo1.png"
     width = 50
