@@ -85,3 +85,8 @@ the folder prefix, one need to add this folder to `$PATH`.
 For `dircolors`, one also need to change the path in `.bashrc` to take effect.
 
 Happy programming :smile:!!!
+
+
+## References
+
+- Explanation of zsh/bash startup files: https://shreevatsa.wordpress.com/2008/03/30/zshbash-startup-files-loading-order-bashrc-zshrc-etc/
