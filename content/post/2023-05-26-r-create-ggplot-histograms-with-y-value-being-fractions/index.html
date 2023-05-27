@@ -1,0 +1,83 @@
+---
+title: '[R] Create ggplot histograms with y value being fractions'
+author: "Zhenguo Zhang"
+date: "2023-05-26"
+slug: "r-create-ggplot-histograms-with-y-value-being-fractions"
+categories:
+- R
+- Computing
+tags:
+- R
+- Programming
+- ggplot2
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<pre class="r"><code>library(knitr)
+opts_chunk$set(echo=T, warning=F, fig.width=7, fig.height=7)
+library(ggplot2)</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.2.3</code></pre>
+<p><a href="https://ggplot2.tidyverse.org">ggplot2</a> has been a great tool for making
+plots. Today, I would like to talk about histogram. It is straight forward
+to make a histogram with <code>geom_histogram()</code>, but not so when one wants to use
+fractions instead of counts as values on the y-axis, especially when data are
+separated into groups. Let’s dive in.</p>
+<div id="histogram-without-groups" class="section level2">
+<h2>Histogram without groups</h2>
+<p>First, let’s generate some fake data.</p>
+<pre class="r"><code>x&lt;-1:10
+y&lt;-rep(c(&quot;a&quot;,&quot;b&quot;), times=5)
+dat&lt;-data.frame(x,y)</code></pre>
+<p>This dataset contains only 10 values without duplicates, and they are divided
+into two groups <code>a</code> and <code>b</code> labelled by variable <code>x</code>.</p>
+<pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x)) + geom_histogram(binwidth = 1, color=&quot;red&quot;, fill=&quot;yellow&quot;)
+plt + ggtitle(&quot;binwidth=1, count&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Here we specified binwidth=1, so there are 10 bins and
+each bin is expected to have only 1 count, and this
+is exact what we observed. Now let’s try a different binwidth, say 0.5. This will
+create 20 bins, but half of them will be empty.</p>
+<pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x)) + geom_histogram(binwidth = 0.5, color=&quot;red&quot;, fill=&quot;yellow&quot;)
+plt + ggtitle(&quot;binwidth=0.5, count&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>If we use fraction, we expect each fraction is being 0.1, because there are
+only 10 values and each non-empty bin has 1 value. To do so, we can use
+the function <code>after_stat(density*width)</code>, where the density is the density
+value in each bin, and width is the binwidth.</p>
+<pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x)) + geom_histogram(aes(y=after_stat(density*width)), binwidth = 0.5, color=&quot;red&quot;, fill=&quot;yellow&quot;)
+plt + ggtitle(&quot;binwidth=0.5, fraction&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>The plot shows up as expected and each fraction is 0.1.</p>
+<p>Good, now let’s introduce groups.</p>
+</div>
+<div id="histogram-with-groups" class="section level2">
+<h2>Histogram with groups</h2>
+<pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x, fill=y)) + geom_histogram(aes(y=after_stat(density*width)), binwidth = 0.5, color=&quot;red&quot;)
+plt + ggtitle(&quot;binwidth=0.5, fraction&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>The two groups are filled in different colors, and the fraction in each bin is
+0.2. This makes sense, because in each group, there are only 5 values and each
+non-empty bin has 1 value, accounting 0.2 of the total 5.</p>
+<p>On the internet, there is another way to calculate fractions using <code>after_stat(count)</code>,
+which works for cases without groups, but not for histograms with groups.
+Here we can see it:</p>
+<pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x, fill=y)) + geom_histogram(aes(y=after_stat(count/sum(count))), binwidth = 0.5, color=&quot;red&quot;)
+plt + ggtitle(&quot;binwidth=0.5, calculated fraction&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>As you can see, each bin has fraction 0.1. This is because the <code>sum(count)</code> gives
+the total number, not the total per group.</p>
+</div>
+<div id="density-plot-with-groups" class="section level2">
+<h2>Density plot with groups</h2>
+<p>Another way to compare the distributions of multiple groups is to use density
+plot, as shown below:</p>
+<pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x, fill=y)) + geom_density(alpha=0.5)
+plt + ggtitle(&quot;density plot&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Happy plotting :smile:</p>
+</div>
