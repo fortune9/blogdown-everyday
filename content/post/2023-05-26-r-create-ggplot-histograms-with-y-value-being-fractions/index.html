@@ -19,7 +19,7 @@ comment: yes
 
 
 <pre class="r"><code>library(knitr)
-opts_chunk$set(echo=T, warning=F, fig.width=7, fig.height=7)
+opts_chunk$set(echo=T, warning=F, fig.width=7, fig.height=7, fig.path=&quot;static/&quot;)
 library(ggplot2)</code></pre>
 <pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.2.3</code></pre>
 <p><a href="https://ggplot2.tidyverse.org">ggplot2</a> has been a great tool for making
@@ -37,21 +37,21 @@ dat&lt;-data.frame(x,y)</code></pre>
 into two groups <code>a</code> and <code>b</code> labelled by variable <code>x</code>.</p>
 <pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x)) + geom_histogram(binwidth = 1, color=&quot;red&quot;, fill=&quot;yellow&quot;)
 plt + ggtitle(&quot;binwidth=1, count&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="static/unnamed-chunk-3-1.png" width="672" /></p>
 <p>Here we specified binwidth=1, so there are 10 bins and
 each bin is expected to have only 1 count, and this
 is exact what we observed. Now let’s try a different binwidth, say 0.5. This will
 create 20 bins, but half of them will be empty.</p>
 <pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x)) + geom_histogram(binwidth = 0.5, color=&quot;red&quot;, fill=&quot;yellow&quot;)
 plt + ggtitle(&quot;binwidth=0.5, count&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="static/unnamed-chunk-4-1.png" width="672" /></p>
 <p>If we use fraction, we expect each fraction is being 0.1, because there are
 only 10 values and each non-empty bin has 1 value. To do so, we can use
 the function <code>after_stat(density*width)</code>, where the density is the density
 value in each bin, and width is the binwidth.</p>
 <pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x)) + geom_histogram(aes(y=after_stat(density*width)), binwidth = 0.5, color=&quot;red&quot;, fill=&quot;yellow&quot;)
 plt + ggtitle(&quot;binwidth=0.5, fraction&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="static/unnamed-chunk-5-1.png" width="672" /></p>
 <p>The plot shows up as expected and each fraction is 0.1.</p>
 <p>Good, now let’s introduce groups.</p>
 </div>
@@ -59,7 +59,7 @@ plt + ggtitle(&quot;binwidth=0.5, fraction&quot;)</code></pre>
 <h2>Histogram with groups</h2>
 <pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x, fill=y)) + geom_histogram(aes(y=after_stat(density*width)), binwidth = 0.5, color=&quot;red&quot;)
 plt + ggtitle(&quot;binwidth=0.5, fraction&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="static/unnamed-chunk-6-1.png" width="672" /></p>
 <p>The two groups are filled in different colors, and the fraction in each bin is
 0.2. This makes sense, because in each group, there are only 5 values and each
 non-empty bin has 1 value, accounting 0.2 of the total 5.</p>
@@ -68,7 +68,7 @@ which works for cases without groups, but not for histograms with groups.
 Here we can see it:</p>
 <pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x, fill=y)) + geom_histogram(aes(y=after_stat(count/sum(count))), binwidth = 0.5, color=&quot;red&quot;)
 plt + ggtitle(&quot;binwidth=0.5, calculated fraction&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="static/unnamed-chunk-7-1.png" width="672" /></p>
 <p>As you can see, each bin has fraction 0.1. This is because the <code>sum(count)</code> gives
 the total number, not the total per group.</p>
 </div>
@@ -76,8 +76,9 @@ the total number, not the total per group.</p>
 <h2>Density plot with groups</h2>
 <p>Another way to compare the distributions of multiple groups is to use density
 plot, as shown below:</p>
-<pre class="r"><code>plt&lt;-ggplot(dat, aes(x=x, fill=y)) + geom_density(alpha=0.5)
+<pre class="r"><code># a bit change to update figures
+plt&lt;-ggplot(dat, aes(x=x, fill=y)) + geom_density(alpha=0.5)
 plt + ggtitle(&quot;density plot&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="static/unnamed-chunk-8-1.png" width="672" /></p>
 <p>Happy plotting :smile:</p>
 </div>

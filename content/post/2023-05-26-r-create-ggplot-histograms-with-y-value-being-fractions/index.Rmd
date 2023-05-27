@@ -18,7 +18,7 @@ comment: yes
 
 ```{r}
 library(knitr)
-opts_chunk$set(echo=T, warning=F, fig.width=7, fig.height=7)
+opts_chunk$set(echo=T, warning=F, fig.width=7, fig.height=7, fig.path="static/")
 library(ggplot2)
 ```
 
@@ -101,6 +101,7 @@ Another way to compare the distributions of multiple groups is to use density
 plot, as shown below:
 
 ```{r}
+# a bit change to update figures
 plt<-ggplot(dat, aes(x=x, fill=y)) + geom_density(alpha=0.5)
 plt + ggtitle("density plot")
 ```
