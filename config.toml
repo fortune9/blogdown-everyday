@@ -6,7 +6,7 @@ theme = "diary"
 # googleAnalytics = "UA-123166861-1"
 # use analytics from zhangz.sci
 googleAnalytics = "G-V3XZ2FMMBQ"
-ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$"]
 # googleSiteVerification = "verification code" # also verified with uploading html
 # added settings
 hasCJKLanguage = false # no chinese/japanese/korean in content
