@@ -1,0 +1,348 @@
+---
+title: '[R] Compute stats on grouped data using dplyr'
+author: Zhenguo Zhang
+date: '2023-05-27'
+slug: r-compute-stats-on-grouped-data-using-dplyr
+categories:
+  - R
+  - Computing
+tags:
+  - R
+  - Programming
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<pre class="r"><code>library(knitr)
+opts_chunk$set(echo=T, warning=T, fig.width=7, height=7)
+library(dplyr)</code></pre>
+<p><a href="https://dplyr.tidyverse.org/r">dplyr</a> is a great package to process data
+in a more smooth way: the output of one function can be inject to another
+function using the operator <code>%&gt;%</code> easily. Today, I would like to share my
+experience on how to process grouped data and return multiple columns/rows
+data.</p>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>We will generate some fake data for this test.</p>
+<pre class="r"><code>g1&lt;-rep(c(&quot;a&quot;,&quot;b&quot;,&quot;c&quot;), each=10)
+g2&lt;-rep(c(&quot;A&quot;,&quot;B&quot;), each=5, length.out=30)
+x&lt;-rnorm(30,0,10)
+dat&lt;-data.frame(g1,g2,x)
+kable(head(dat))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">g1</th>
+<th align="left">g2</th>
+<th align="right">x</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">a</td>
+<td align="left">A</td>
+<td align="right">0.9489863</td>
+</tr>
+<tr class="even">
+<td align="left">a</td>
+<td align="left">A</td>
+<td align="right">-0.5877112</td>
+</tr>
+<tr class="odd">
+<td align="left">a</td>
+<td align="left">A</td>
+<td align="right">11.6968621</td>
+</tr>
+<tr class="even">
+<td align="left">a</td>
+<td align="left">A</td>
+<td align="right">7.0672042</td>
+</tr>
+<tr class="odd">
+<td align="left">a</td>
+<td align="left">A</td>
+<td align="right">12.6570049</td>
+</tr>
+<tr class="even">
+<td align="left">a</td>
+<td align="left">B</td>
+<td align="right">8.1088123</td>
+</tr>
+</tbody>
+</table>
+<p>As you can see, this dataset includes 3 columns:</p>
+<ul>
+<li><p>g1: a category variable with 3 levels, “a”, “b”, and “c”</p></li>
+<li><p>g2: another variable with 2 levels, “A”,“B”, which are evenly balanced within
+each value of g1</p></li>
+<li><p>x: the value column, which will be statistically tested</p></li>
+</ul>
+</div>
+<div id="tests" class="section level2">
+<h2>Tests</h2>
+<p>We will run a statistical test for the value <code>x</code> between “A” and “B” (column <code>g2</code>)
+within each category of <code>g1</code>. For this, we will use dplyer’s <code>group_by()</code> function
+to divide data, and then run tests on subsets and each subset returns a data.frame.
+This data.frame can be multi-row or single-row, and see how dplyr handles the return
+results.</p>
+<p>First, let’s use the <code>summarize()</code> function to collapse the results.</p>
+<pre class="r"><code># this function return a single-row data.frame
+my_test&lt;-function(v, g) {
+  res&lt;-t.test(v ~ g)
+  df&lt;-data.frame(mean1=res$estimate[1], mean2=res$estimate[2], P=res$p.value)
+  return(df)
+}
+
+dat %&gt;%
+  group_by(g1) %&gt;%
+  summarize(with(.data, my_test(x, g2) )) %&gt;%
+  kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">g1</th>
+<th align="right">mean1</th>
+<th align="right">mean2</th>
+<th align="right">P</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">6.356469</td>
+<td align="right">3.681912</td>
+<td align="right">0.5029446</td>
+</tr>
+<tr class="even">
+<td align="left">b</td>
+<td align="right">-1.226555</td>
+<td align="right">-4.937334</td>
+<td align="right">0.4937346</td>
+</tr>
+<tr class="odd">
+<td align="left">c</td>
+<td align="right">6.793084</td>
+<td align="right">2.280872</td>
+<td align="right">0.3598557</td>
+</tr>
+</tbody>
+</table>
+<p>As you can see, the functions do well, and return a new data.frame with
+group name and the result from each group.</p>
+<p>Let’s also try a function returning multiple rows.</p>
+<pre class="r"><code># this function returns multiple-row data.frame
+my_quantiles&lt;-function(v) {
+  probs&lt;-seq(0,1,0.25)
+  qt&lt;-quantile(x, probs = probs)
+  data.frame(quant=qt, prob=probs)
+}
+dat %&gt;%
+  group_by(g1) %&gt;%
+  summarize(with(.data, my_quantiles(x) )) %&gt;%
+  kable()</code></pre>
+<pre><code>## Warning: Returning more (or less) than 1 row per `summarise()` group was deprecated in
+## dplyr 1.1.0.
+## ℹ Please use `reframe()` instead.
+## ℹ When switching from `summarise()` to `reframe()`, remember that `reframe()`
+##   always returns an ungrouped data frame and adjust accordingly.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;g1&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">g1</th>
+<th align="right">quant</th>
+<th align="right">prob</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">-13.250311</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">a</td>
+<td align="right">-2.206370</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">1.124772</td>
+<td align="right">0.50</td>
+</tr>
+<tr class="even">
+<td align="left">a</td>
+<td align="right">9.544496</td>
+<td align="right">0.75</td>
+</tr>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">16.158428</td>
+<td align="right">1.00</td>
+</tr>
+<tr class="even">
+<td align="left">b</td>
+<td align="right">-13.250311</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">b</td>
+<td align="right">-2.206370</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="even">
+<td align="left">b</td>
+<td align="right">1.124772</td>
+<td align="right">0.50</td>
+</tr>
+<tr class="odd">
+<td align="left">b</td>
+<td align="right">9.544496</td>
+<td align="right">0.75</td>
+</tr>
+<tr class="even">
+<td align="left">b</td>
+<td align="right">16.158428</td>
+<td align="right">1.00</td>
+</tr>
+<tr class="odd">
+<td align="left">c</td>
+<td align="right">-13.250311</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">c</td>
+<td align="right">-2.206370</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="odd">
+<td align="left">c</td>
+<td align="right">1.124772</td>
+<td align="right">0.50</td>
+</tr>
+<tr class="even">
+<td align="left">c</td>
+<td align="right">9.544496</td>
+<td align="right">0.75</td>
+</tr>
+<tr class="odd">
+<td align="left">c</td>
+<td align="right">16.158428</td>
+<td align="right">1.00</td>
+</tr>
+</tbody>
+</table>
+<p>The results remain good but with deprecating warning, which asks me to replace
+<code>summarize()</code> with <code>reframe()</code>, so let’s try this new function.</p>
+<pre class="r"><code>dat %&gt;%
+  group_by(g1) %&gt;%
+  reframe(with(.data, my_quantiles(x) )) %&gt;%
+  kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">g1</th>
+<th align="right">quant</th>
+<th align="right">prob</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">-13.250311</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">a</td>
+<td align="right">-2.206370</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">1.124772</td>
+<td align="right">0.50</td>
+</tr>
+<tr class="even">
+<td align="left">a</td>
+<td align="right">9.544496</td>
+<td align="right">0.75</td>
+</tr>
+<tr class="odd">
+<td align="left">a</td>
+<td align="right">16.158428</td>
+<td align="right">1.00</td>
+</tr>
+<tr class="even">
+<td align="left">b</td>
+<td align="right">-13.250311</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="odd">
+<td align="left">b</td>
+<td align="right">-2.206370</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="even">
+<td align="left">b</td>
+<td align="right">1.124772</td>
+<td align="right">0.50</td>
+</tr>
+<tr class="odd">
+<td align="left">b</td>
+<td align="right">9.544496</td>
+<td align="right">0.75</td>
+</tr>
+<tr class="even">
+<td align="left">b</td>
+<td align="right">16.158428</td>
+<td align="right">1.00</td>
+</tr>
+<tr class="odd">
+<td align="left">c</td>
+<td align="right">-13.250311</td>
+<td align="right">0.00</td>
+</tr>
+<tr class="even">
+<td align="left">c</td>
+<td align="right">-2.206370</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="odd">
+<td align="left">c</td>
+<td align="right">1.124772</td>
+<td align="right">0.50</td>
+</tr>
+<tr class="even">
+<td align="left">c</td>
+<td align="right">9.544496</td>
+<td align="right">0.75</td>
+</tr>
+<tr class="odd">
+<td align="left">c</td>
+<td align="right">16.158428</td>
+<td align="right">1.00</td>
+</tr>
+</tbody>
+</table>
+<p>Great, everything looks good.</p>
+</div>
+<div id="conclusions" class="section level2">
+<h2>Conclusions</h2>
+<p>We can combine the function <code>group_by()</code>, <code>summarize()</code> and a function returning a data.frame
+to easily analyze data by groups via <code>dplyr</code>. When the returned data.frame is
+multi-row, the function <code>summarize()</code> should be replaced with <code>reframe()</code>.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li><p>reframe(): <a href="https://dplyr.tidyverse.org/reference/reframe.html" class="uri">https://dplyr.tidyverse.org/reference/reframe.html</a></p></li>
+<li><p>mutate() with multi-row results: <a href="https://stackoverflow.com/questions/73398676/dplyrmutate-when-custom-function-return-a-vector" class="uri">https://stackoverflow.com/questions/73398676/dplyrmutate-when-custom-function-return-a-vector</a></p></li>
+</ul>
+</div>

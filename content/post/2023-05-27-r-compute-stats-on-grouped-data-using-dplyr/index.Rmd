@@ -1,0 +1,118 @@
+---
+title: '[R] Compute stats on grouped data using dplyr'
+author: Zhenguo Zhang
+date: '2023-05-27'
+slug: r-compute-stats-on-grouped-data-using-dplyr
+categories:
+  - R
+  - Computing
+tags:
+  - R
+  - Programming
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+```{r setup, warning=F, message=F}
+library(knitr)
+opts_chunk$set(echo=T, warning=T, fig.width=7, height=7)
+library(dplyr)
+```
+
+[dplyr](https://dplyr.tidyverse.org/r) is a great package to process data
+in a more smooth way: the output of one function can be inject to another
+function using the operator `%>%` easily. Today, I would like to share my
+experience on how to process grouped data and return multiple columns/rows
+data.
+
+## Data
+
+We will generate some fake data for this test.
+
+```{r}
+g1<-rep(c("a","b","c"), each=10)
+g2<-rep(c("A","B"), each=5, length.out=30)
+x<-rnorm(30,0,10)
+dat<-data.frame(g1,g2,x)
+kable(head(dat))
+```
+
+As you can see, this dataset includes 3 columns:
+
+- g1: a category variable with 3 levels, "a", "b", and "c"
+
+- g2: another variable with 2 levels, "A","B", which are evenly balanced within
+  each value of g1
+
+- x: the value column, which will be statistically tested
+
+
+## Tests
+
+We will run a statistical test for the value `x` between "A" and "B" (column `g2`)
+within each category of `g1`. For this, we will use dplyer's `group_by()` function
+to divide data, and then run tests on subsets and each subset returns a data.frame.
+This data.frame can be multi-row or single-row, and see how dplyr handles the return
+results.
+
+First, let's use the `summarize()` function to collapse the results.
+
+```{r}
+# this function return a single-row data.frame
+my_test<-function(v, g) {
+  res<-t.test(v ~ g)
+  df<-data.frame(mean1=res$estimate[1], mean2=res$estimate[2], P=res$p.value)
+  return(df)
+}
+
+dat %>%
+  group_by(g1) %>%
+  summarize(with(.data, my_test(x, g2) )) %>%
+  kable()
+```
+
+As you can see, the functions do well, and return a new data.frame with
+group name and the result from each group.
+
+Let's also try a function returning multiple rows.
+
+
+```{r}
+# this function returns multiple-row data.frame
+my_quantiles<-function(v) {
+  probs<-seq(0,1,0.25)
+  qt<-quantile(x, probs = probs)
+  data.frame(quant=qt, prob=probs)
+}
+dat %>%
+  group_by(g1) %>%
+  summarize(with(.data, my_quantiles(x) )) %>%
+  kable()
+```
+
+The results remain good but with deprecating warning, which asks me to replace
+`summarize()` with `reframe()`, so let's try this new function.
+
+```{r}
+dat %>%
+  group_by(g1) %>%
+  reframe(with(.data, my_quantiles(x) )) %>%
+  kable()
+```
+
+Great, everything looks good.
+
+## Conclusions
+
+We can combine the function `group_by()`, `summarize()` and a function returning a data.frame
+to easily analyze data by groups via `dplyr`. When the returned data.frame is
+multi-row, the function `summarize()` should be replaced with `reframe()`.
+
+## References
+
+- reframe(): https://dplyr.tidyverse.org/reference/reframe.html
+
+- mutate() with multi-row results: https://stackoverflow.com/questions/73398676/dplyrmutate-when-custom-function-return-a-vector
+
