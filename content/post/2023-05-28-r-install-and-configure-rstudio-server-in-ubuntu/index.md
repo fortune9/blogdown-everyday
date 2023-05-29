@@ -199,4 +199,4 @@ Happy programming, :smile:
 
 - Rstudio server admin guide: https://s3.amazonaws.com/rstudio-server/rstudio-server-pro-0.98.507-admin-guide.pdf
 
-- 
+- Configure Rstudio server: https://support.posit.co/hc/en-us/articles/200532327-Configuring-the-Server
