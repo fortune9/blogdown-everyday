@@ -63,6 +63,19 @@ AWS EC2 instance and the SSh connection.
 This ssh tunnel forwarding is essential when AWS EC2 instance is run in a private
 network, but may not be needed for the ones with public IPs.
 
+**Update 05/30/2023**:
+
+Actually, this tunnel forwarding isn't necessary, when one starts jupyter using
+the following command:
+
+```
+jupyter-lab --no-browser --ip 0.0.0.0
+```
+
+By adding the option '--ip 0.0.0.0', jupyter allows connection from any IP address;
+in default, it only allows localhost connection and that is why it needs tunnel
+forwarding.
+
 ## References
 
 - AWS jupyter tunnel: https://gist.github.com/jakechen/faf0500132d46d83517004bbfedbe5de
