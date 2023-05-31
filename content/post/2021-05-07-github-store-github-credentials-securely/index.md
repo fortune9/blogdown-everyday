@@ -116,6 +116,8 @@ setting**:
   program, such as `pinentry-program /usr/bin/pinentry-tty`.
   One can replace this with others, choice of which can be
   found by running `ls /usr/bin/ | grep pinentry`.
+* also run `gpg-connect-agent reloadagent /bye` to reload
+  the new configuration.
 
 Remember the key uid, say "myid@gmail.com", which will be
 used in next step.
@@ -169,6 +171,9 @@ password stored in 'dev/github'.
 If one wants a certain github account or repository use
 a specific password, it can replace 'github.com/*' with
 corresponding URL patterns, such as 'github.com/githubid/*'.
+But for this, it is **very important** to set 'useHttpPath = true'
+in the file '.gitconfig', otherwise git won't find the
+correct password entry.
 
 6. Setup the .gitconfig file to use the helper 'pass-git-helper'
 
