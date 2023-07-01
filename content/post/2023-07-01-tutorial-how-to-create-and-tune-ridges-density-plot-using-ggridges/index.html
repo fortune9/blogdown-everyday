@@ -1,0 +1,86 @@
+---
+title: '[Tutorial] How to create and tune ridgeline density plot using ggridges'
+author: Zhenguo Zhang
+date: '2023-07-01'
+slug: tutorial-how-to-create-and-tune-ridges-density-plot-using-ggridges
+categories:
+  - R
+  - Software
+  - Visualization
+tags:
+  - R Markdown
+  - ggplot2
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<p>Today, I would like to introduce how to use the package
+<a href="https://cran.r-project.org/web/packages/ggridges/index.html">ggridges</a>
+to create a ridgeline density plot. Let’s start.</p>
+<div id="install-the-package" class="section level2">
+<h2>Install the package</h2>
+<pre class="r"><code>install.packages(&quot;ggridges&quot;)</code></pre>
+</div>
+<div id="first-try" class="section level2">
+<h2>First try</h2>
+<pre class="r"><code>library(ggplot2)
+library(ggridges)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>plt&lt;-ggplot(iris, aes(x=Sepal.Width, y=Species, fill=Species))
+plt&lt;-plt+theme_bw()
+plt+geom_density_ridges()</code></pre>
+<pre><code>## Picking joint bandwidth of 0.13</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>Looks good, right.</p>
+</div>
+<div id="add-data-points" class="section level2">
+<h2>Add data points</h2>
+<p>To do so, we will add rug lines at the bottom of each distribution, by
+turn on the option <code>jittered_points</code>.</p>
+<pre class="r"><code>plt&lt;-plt+geom_density_ridges( # add rug points
+    jittered_points = TRUE,
+    position = position_points_jitter(width = 0.05, height = 0.01, yoffset = -0.1),
+    point_shape = &#39;|&#39;, point_size = 2, point_alpha = 0.8, alpha = 0.7, point_color=&quot;blue&quot;)
+plt</code></pre>
+<pre><code>## Picking joint bandwidth of 0.13</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Parameter explanation:</p>
+<ul>
+<li><p>position_points_jitter() is used to determine where the rug lines are, here <code>width</code>
+and <code>height</code> gives the range for the lines to move randomly, and yoffset tells to
+move all lines downwards a certain amount.</p></li>
+<li><p>point_shape, point_size, point_alpha, point_color all determine the appearance of the
+rug lines.</p></li>
+</ul>
+</div>
+<div id="add-the-number-of-data-points-for-each-distribution" class="section level2">
+<h2>Add the number of data points for each distribution</h2>
+<p>Get counts</p>
+<pre class="r"><code>pointCnt&lt;-iris %&gt;% group_by(Species) %&gt;% count()</code></pre>
+<p>Update the plot with <code>geom_text()</code> to add counts.</p>
+<pre class="r"><code>plt+geom_text(data=pointCnt, aes(x=4.5, y=Species, label=n))</code></pre>
+<pre><code>## Picking joint bandwidth of 0.13</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Let’s move the count number a bit to the top</p>
+<pre class="r"><code>plt&lt;-plt+geom_text(data=pointCnt, aes(x=4.5, y=Species, label=n),
+  nudge_y = 0.95, vjust=1, size=7/.pt, color=&quot;red&quot;)
+plt</code></pre>
+<pre><code>## Picking joint bandwidth of 0.13</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Here we use the parameter <code>nudge_y</code> to shift the y value upwards
+a certain amount and set text size and color.</p>
+<p>It looks good, isn’t it?</p>
+<p>Happy programming :smile: !</p>
+</div>

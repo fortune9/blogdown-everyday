@@ -1,0 +1,97 @@
+---
+title: '[Tutorial] How to create and tune ridgeline density plot using ggridges'
+author: Zhenguo Zhang
+date: '2023-07-01'
+slug: tutorial-how-to-create-and-tune-ridges-density-plot-using-ggridges
+categories:
+  - R
+  - Software
+  - Visualization
+tags:
+  - R Markdown
+  - ggplot2
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=T, warning=F)
+```
+
+Today, I would like to introduce how to use the package
+[ggridges](https://cran.r-project.org/web/packages/ggridges/index.html)
+to create a ridgeline density plot. Let's start.
+
+## Install the package
+
+```r
+install.packages("ggridges")
+```
+
+## First try
+
+```{r}
+library(ggplot2)
+library(ggridges)
+library(dplyr)
+plt<-ggplot(iris, aes(x=Sepal.Width, y=Species, fill=Species))
+plt<-plt+theme_bw()
+plt+geom_density_ridges()
+```
+
+Looks good, right.
+
+## Add data points
+
+To do so, we will add rug lines at the bottom of each distribution, by
+turn on the option `jittered_points`.
+
+```{r}
+plt<-plt+geom_density_ridges( # add rug points
+    jittered_points = TRUE,
+    position = position_points_jitter(width = 0.05, height = 0.01, yoffset = -0.1),
+    point_shape = '|', point_size = 2, point_alpha = 0.8, alpha = 0.7, point_color="blue")
+plt
+```
+
+Parameter explanation:
+
+- position_points_jitter() is used to determine where the rug lines are, here `width`
+  and `height` gives the range for the lines to move randomly, and yoffset tells to
+  move all lines downwards a certain amount.
+
+- point_shape, point_size, point_alpha, point_color all determine the appearance of the
+  rug lines.
+
+## Add the number of data points for each distribution
+
+Get counts
+
+```{r}
+pointCnt<-iris %>% group_by(Species) %>% count()
+```
+
+Update the plot with `geom_text()` to add counts.
+
+```{r}
+plt+geom_text(data=pointCnt, aes(x=4.5, y=Species, label=n))
+```
+
+Let's move the count number a bit to the top
+
+```{r}
+plt<-plt+geom_text(data=pointCnt, aes(x=4.5, y=Species, label=n),
+  nudge_y = 0.95, vjust=1, size=7/.pt, color="red")
+plt
+```
+
+Here we use the parameter `nudge_y` to shift the y value upwards
+a certain amount and set text size and color.
+
+It looks good, isn't it?
+
+
+Happy programming :smile: !
+
