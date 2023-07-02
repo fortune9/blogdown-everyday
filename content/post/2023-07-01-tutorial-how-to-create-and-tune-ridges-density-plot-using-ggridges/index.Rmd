@@ -92,6 +92,16 @@ a certain amount and set text size and color.
 
 It looks good, isn't it?
 
+## References
+
+One can find more examples of how to tune the ridgeline density plot
+at the following pages:
+
+- https://r-charts.com/distribution/ggridges/
+
+- https://wilkelab.org/ggridges/articles/introduction.html
+
+- https://cran.r-project.org/web/packages/ggridges/vignettes/gallery.html
 
 Happy programming :smile: !
 
