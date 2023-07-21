@@ -101,6 +101,10 @@ enableEmoji = true # allow Emoji emotions
 [Services.RSS]
  limit = 10
 
+[author]
+  name = "Zhenguo Zhang"
+  email = "zhangz.sci@gmail.com"
+
 # add plugins
 [[plugins]]
 	package = "@netlify/plugin-sitemap"
