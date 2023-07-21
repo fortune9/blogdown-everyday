@@ -1,4 +1,4 @@
-baseurl = "/"
+baseurl = "https://fortune9.netlify.app/"
 languageCode = "en-us"
 title = "Zhenguo Zhang's Blog"
 # theme = "hugo-theme-diary"
@@ -96,6 +96,10 @@ enableEmoji = true # allow Emoji emotions
     noClasses = true
     style = "monokai"
     tabWidth = 4
+
+# set RSS feed
+[Services.RSS]
+ limit = 10
 
 # add plugins
 [[plugins]]
