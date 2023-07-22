@@ -1,4 +1,4 @@
-baseurl = "https://fortune9.netlify.app/"
+baseurl = "/"
 languageCode = "en-us"
 title = "Zhenguo Zhang's Blog"
 # theme = "hugo-theme-diary"
@@ -101,7 +101,7 @@ enableEmoji = true # allow Emoji emotions
 [Services.RSS]
  limit = 10
 
-[author]
+[Author]
   name = "Zhenguo Zhang"
   email = "zhangz.sci@gmail.com"
 
