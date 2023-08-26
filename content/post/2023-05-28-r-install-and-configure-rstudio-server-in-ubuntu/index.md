@@ -191,6 +191,32 @@ Hooray!!! Now you can use Rstudio anywhere.
 
 Happy programming, :smile:
 
+
+## Troubleshooting
+
+- Error: "R graphics engine version 16 is not supported by this version of RStudio. The Plots tab will be disabled until a newer version of RStudio is installed"
+
+  * This error is due to the misalignment between the R version and rstudio-server
+    versions. Basically, graphics engine version 14, 15, and 16 are provided by
+    R version 4.1.x, 4.2.x, and 4.3.x, and the correct version of R studio should
+    be the one published after the R version published. Also see this issue
+    https://github.com/rstudio/rstudio/issues/12751.
+  
+- The Rstudio-server for Ubuntu 18.04
+
+  * At the Rstudio website, as of 08/25/2023, it only provides compiled versions
+    of Rstudio-server for Ubuntu 20+. To get the compiled versions for Ubuntu 18.04,
+    one can go to https://dailies.rstudio.com/rstudio/elsbeth-geranium/server/bionic-amd64/.
+    Actually, the same files can be found at AWS S3 folder
+    rstudio-ide-build/server/bionic/amd64/.
+
+- Error: "Unable to load shared library libssl.so.xx" when starting Rstudio-server.
+
+  * This is normally due to a wrong version of Rstudio-server being installed, for
+    example, a compiled version for Ubuntu 20 is installed in Ubuntu 18.04. Make sure
+    the compiled version is for the operating system under consideration.
+
+
 ## References
 
 - Install Rstudio server in AWS: https://jagg19.github.io/2019/08/aws-r/#long_way
