@@ -1,0 +1,97 @@
+---
+title: '[R] How to overlay points over boxplots'
+author: Zhenguo Zhang
+date: '2023-08-26'
+slug: r-how-to-overlay-points-over-boxplots
+categories:
+  - R
+  - Computing
+  - Visualization
+tags:
+  - R
+  - ggplot2
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<pre class="r"><code>library(ggplot2)</code></pre>
+<p>ggplot2 is a powerful tool to visualize data. Today I would like to show how
+to make a boxplot and then overlay points.</p>
+<div id="a-pure-boxplot" class="section level2">
+<h2>A pure boxplot</h2>
+<p>First, let’s make a boxplot. We will use the data set <code>ToothGrowth</code> coming with
+R.</p>
+<pre class="r"><code>dat&lt;-ToothGrowth
+dat$dose&lt;-as.factor(dat$dose) # convert the dose to a factor
+plt&lt;-ggplot(dat, aes(x=dose, y=len, fill=supp)) + theme_bw()
+plt&lt;-plt + geom_boxplot()
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/bx-plot-1.png" width="1400" style="display: block; margin: auto;" /></p>
+</div>
+<div id="add-points-with-geom_jitter" class="section level2">
+<h2>add points with geom_jitter()</h2>
+<p>Now let’s add points over the boxplots with the function
+<code>geom_jitter()</code>. Here we use the function <code>position_jitter()</code>
+to control the points’ spreads.</p>
+<pre class="r"><code>plt + geom_jitter(position = position_jitter(width=0.4), pch=24, size=2, alpha=0.6)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="1400" style="display: block; margin: auto;" /></p>
+<p>This doesn’t look right, because the points are superimposed over both boxes in
+each dose level; they are supposed to be separated by the factor ‘supp’.</p>
+<p>Now let’s try a different function <code>position_jitterdodge()</code></p>
+<pre class="r"><code>plt + geom_jitter(position = position_jitterdodge(jitter.width=0.4), pch=24, size=2, alpha=0.6)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="1400" style="display: block; margin: auto;" /></p>
+<p>This looks good, right. Note that we used ‘fill’ to control the colors of both
+boxplots and points, so the selected points by ‘pch’ should have a property of
+fill.</p>
+</div>
+<div id="add-points-with-geom_point" class="section level2">
+<h2>Add points with geom_point()</h2>
+<p>We can also use <code>geom_point()</code> plus <code>position_jitterdodge()</code> to make similar
+plots, as below:</p>
+<pre class="r"><code>plt + geom_point(position = position_jitterdodge(jitter.width=0.4), pch=24, size=2, alpha=0.6)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="1400" style="display: block; margin: auto;" /></p>
+<p>The function <a href="ggplot2::position_jitterdodge()">position_jitterdodge()</a> provides jitter effects, and the degree of
+spread can be tuned with the parameter <code>jitter.width</code>, default is 0.4. Let’s try
+a smaller number 0.2.</p>
+<pre class="r"><code>plt + geom_point(position = position_jitterdodge(jitter.width=0.2), pch=24, size=2, alpha=0.6)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="1400" style="display: block; margin: auto;" /></p>
+<p>As you can see, the points are clustered more narrowly in the horizontal
+direction.</p>
+</div>
+<div id="the-categorical-variable-should-be-a-factor" class="section level2">
+<h2>The categorical variable should be a factor</h2>
+<p>There is a caveat here. The variable used for specifying filling color
+must be a factor, otherwise the points will not be grouped correctly.</p>
+<p>Let’s create a new variable <code>supp2</code>, which is a character version of <code>supp</code>,
+and use <code>supp2</code> for color fill.</p>
+<pre class="r"><code>dat$supp2&lt;-as.character(dat$supp)
+plt&lt;-ggplot(dat, aes(x=dose, y=len, fill=supp2)) + theme_bw()
+plt&lt;-plt + geom_boxplot()
+plt + geom_point(position = position_jitterdodge(jitter.width=0.4), pch=24, size=2, alpha=0.6)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="1400" style="display: block; margin: auto;" /></p>
+<p>As you can see, the points are spreaded out, even though the same parameter
+<code>jitter.width</code> was given. Let’s try a smaller value 0.2</p>
+<pre class="r"><code>plt + geom_point(position = position_jitterdodge(jitter.width=0.2), pch=24, size=2, alpha=0.6)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="1400" style="display: block; margin: auto;" /></p>
+<p>This helps a bit.</p>
+</div>
+<div id="conclusions" class="section level2">
+<h2>Conclusions</h2>
+<p>To make boxplot with superimposed points, one need use the function
+<code>position_jitterdodge()</code> to specify point positions, with this both
+<code>geom_point()</code> and <code>geom_jitter()</code> can be used.</p>
+<p>Also the group variables used for specifying colors or filling colors
+should be a factor, not character; otherwise some unexpected behavior may
+happen.</p>
+<p>Happy Programming :smile: :+1:</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li>ggplot2 boxplot quick start: <a href="http://www.sthda.com/english/wiki/ggplot2-box-plot-quick-start-guide-r-software-and-data-visualization" class="uri">http://www.sthda.com/english/wiki/ggplot2-box-plot-quick-start-guide-r-software-and-data-visualization</a></li>
+</ul>
+</div>
