@@ -1,0 +1,85 @@
+---
+title: '[R] tidy evaluation in ggplot2'
+author: Zhenguo Zhang
+date: '2023-10-23'
+slug: r-tidy-evaluation-in-ggplot2
+categories:
+  - R
+  - Visualization
+tags:
+  - ggplot2
+  - R
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<p>Since ggplot2 version 3.0.0, it started to support tidy evaluation, and use
+the technique to replace <code>aes_</code> and <code>aes_string()</code>. In this post, I would like
+to show how the syntax of ggplot2 changes accordingly.</p>
+<pre class="r"><code>knitr::opts_chunk$set(echo=T, fig.align = &quot;center&quot;, fig.width = 6, fig.height = 5, dpi=150, warning=FALSE)</code></pre>
+<pre class="r"><code>library(knitr)
+library(ggplot2)</code></pre>
+<p>Let’s start with an example of making a scatter plot with the
+dataset <code>mtcars</code>.</p>
+<pre class="r"><code>library(ggplot2)
+plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(cyl))) + theme_bw()
+plt&lt;-plt+geom_point()
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>But what if we create a function to make the plot and accept different variables for
+the color aesthetics?</p>
+<pre class="r"><code>make_scatter_plot&lt;-function(colorVar) {
+  plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(colorVar))) + theme_bw()
+  plt&lt;-plt+geom_point()
+  plt
+}
+make_scatter_plot(&quot;cyl&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>As you can see, this doesn’t work as expected: it actually created a new variable
+which has only one value “cyl” for the <code>fill</code> aesthetics. What we need is to use the
+<code>cyl</code> column of the <code>mtcars</code> dataset to fill the colors.</p>
+<p>Here is tidy evaluation kicks in: we use <code>enquo()</code> to quote an input variable, and
+then unquote it with <code>!!</code>, as shown in the function below:</p>
+<pre class="r"><code>make_scatter_plot&lt;-function(colorVar) {
+  colorVar&lt;-enquo(colorVar)
+  plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(!!colorVar))) + theme_bw()
+  plt&lt;-plt+geom_point()
+  plt
+}
+make_scatter_plot(cyl)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>Here we used the function <code>ggplot2::enquo()</code> which delayed the evaluation of an expression,
+and it will only be evaluated when prefixed with <code>!!</code>. This is the key feature of tidy evaluation.
+With this function, we can call a different column to color it, for example:</p>
+<pre class="r"><code>make_scatter_plot(gear)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>Note that you can’t put the variable name in a quote, such as “gear”, and it would not work.</p>
+<p>Another useful function is <code>ggplot2::vars()</code>, it can quasiquote more than one variables and
+be used in functions such as <code>facet_wrap()</code> and <code>facet_grid()</code>. Let’s see an example:</p>
+<pre class="r"><code>make_scatter_plot(gear) + facet_wrap(vars(am), labeller=label_both)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>We can also put both color and facet variable in another function <code>make_scatter_plot_facet</code>
+which calls <code>make_scatter_plot</code>. As you can see, the color variable need be <code>enquo</code> and unquote
+(use <code>!!</code>) in this wrapping function too.</p>
+<pre class="r"><code>make_scatter_plot_facet&lt;-function(colorVar, facetVar) {
+  #facetName&lt;-quo_name(facetVar)
+  facetVar&lt;-enquo(facetVar)
+  colorVar&lt;-enquo(colorVar)
+  make_scatter_plot(!!colorVar) + facet_wrap(vars(!!facetVar), labeller=label_both)
+}
+
+make_scatter_plot_facet(gear, am)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>This is just the first post on tidy evaluation. More is coming.</p>
+<p>Happy programming :smile:</p>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li><p>tidy evaluation in ggplot2: <a href="https://www.tidyverse.org/blog/2018/07/ggplot2-tidy-evaluation/" class="uri">https://www.tidyverse.org/blog/2018/07/ggplot2-tidy-evaluation/</a></p></li>
+<li><p>quasiquotation in R: <a href="https://adv-r.hadley.nz/quasiquotation.html" class="uri">https://adv-r.hadley.nz/quasiquotation.html</a></p></li>
+</ul>
+</div>

@@ -1,0 +1,119 @@
+---
+title: '[R] tidy evaluation in ggplot2'
+author: Zhenguo Zhang
+date: '2023-10-23'
+slug: r-tidy-evaluation-in-ggplot2
+categories:
+  - R
+  - Visualization
+tags:
+  - ggplot2
+  - R
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+Since ggplot2 version 3.0.0, it started to support tidy evaluation, and use
+the technique to replace `aes_` and `aes_string()`. In this post, I would like
+to show how the syntax of ggplot2 changes accordingly.
+
+```{r setup}
+knitr::opts_chunk$set(echo=T, fig.align = "center", fig.width = 6, fig.height = 5, dpi=150, warning=FALSE)
+```
+
+```{r}
+library(knitr)
+library(ggplot2)
+```
+
+Let's start with an example of making a scatter plot with the
+dataset `mtcars`.
+
+```{r}
+library(ggplot2)
+plt<-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(cyl))) + theme_bw()
+plt<-plt+geom_point()
+plt
+```
+
+
+But what if we create a function to make the plot and accept different variables for
+the color aesthetics? 
+
+```{r}
+make_scatter_plot<-function(colorVar) {
+  plt<-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(colorVar))) + theme_bw()
+  plt<-plt+geom_point()
+  plt
+}
+make_scatter_plot("cyl")
+```
+
+
+As you can see, this doesn't work as expected: it actually created a new variable
+which has only one value "cyl" for the `fill` aesthetics. What we need is to use the
+`cyl` column of the `mtcars` dataset to fill the colors.
+
+Here is tidy evaluation kicks in: we use `enquo()` to quote an input variable, and
+then unquote it with `!!`, as shown in the function below:
+
+
+```{r}
+make_scatter_plot<-function(colorVar) {
+  colorVar<-enquo(colorVar)
+  plt<-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(!!colorVar))) + theme_bw()
+  plt<-plt+geom_point()
+  plt
+}
+make_scatter_plot(cyl)
+```
+
+
+Here we used the function `ggplot2::enquo()` which delayed the evaluation of an expression,
+and it will only be evaluated when prefixed with `!!`. This is the key feature of tidy evaluation.
+With this function, we can call a different column to color it, for example:
+
+```{r}
+make_scatter_plot(gear)
+```
+
+
+Note that you can't put the variable name in a quote, such as "gear", and it would not work.
+
+Another useful function is `ggplot2::vars()`, it can quasiquote more than one variables and 
+be used in functions such as `facet_wrap()` and `facet_grid()`. Let's see an example:
+
+```{r}
+make_scatter_plot(gear) + facet_wrap(vars(am), labeller=label_both)
+
+```
+
+
+We can also put both color and facet variable in another function `make_scatter_plot_facet`
+which calls `make_scatter_plot`. As you can see, the color variable need be `enquo` and unquote
+(use `!!`) in this wrapping function too.
+
+```{r}
+make_scatter_plot_facet<-function(colorVar, facetVar) {
+  #facetName<-quo_name(facetVar)
+  facetVar<-enquo(facetVar)
+  colorVar<-enquo(colorVar)
+  make_scatter_plot(!!colorVar) + facet_wrap(vars(!!facetVar), labeller=label_both)
+}
+
+make_scatter_plot_facet(gear, am)
+
+```
+
+
+This is just the first post on tidy evaluation. More is coming.
+
+Happy programming :smile:
+
+## References
+
+- tidy evaluation in ggplot2: https://www.tidyverse.org/blog/2018/07/ggplot2-tidy-evaluation/
+
+- quasiquotation in R: https://adv-r.hadley.nz/quasiquotation.html
