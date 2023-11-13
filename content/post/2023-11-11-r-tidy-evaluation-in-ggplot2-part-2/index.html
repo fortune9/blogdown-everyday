@@ -1,0 +1,159 @@
+---
+title: '[R] tidy evaluation in ggplot2 (part 2)'
+author: "Zhenguo Zhang"
+date: "2023-11-11"
+slug: "r-tidy-evaluation-in-ggplot2-part-2"
+categories:
+- R
+- Software
+- Visualization
+tags:
+- R
+- ggplot2
+- Programming
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<pre class="r"><code>knitr::opts_chunk$set(echo=T, fig.align = &quot;center&quot;, fig.width = 6, fig.height = 5, dpi=150, warning=FALSE)</code></pre>
+<pre class="r"><code>library(knitr)
+library(ggplot2)</code></pre>
+<div id="how-to-use-variables-to-refer-columns-in-ggplot2" class="section level2">
+<h2>How to use variables to refer columns in ggplot2</h2>
+<p>Let’s start an example of making a scatter plot by using the
+dataset <code>mtcars</code>.</p>
+<pre class="r"><code>head(mtcars)</code></pre>
+<pre><code>##                    mpg cyl disp  hp drat    wt  qsec vs am gear carb
+## Mazda RX4         21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
+## Mazda RX4 Wag     21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
+## Datsun 710        22.8   4  108  93 3.85 2.320 18.61  1  1    4    1
+## Hornet 4 Drive    21.4   6  258 110 3.08 3.215 19.44  1  0    3    1
+## Hornet Sportabout 18.7   8  360 175 3.15 3.440 17.02  0  0    3    2
+## Valiant           18.1   6  225 105 2.76 3.460 20.22  1  0    3    1</code></pre>
+<p>We can make a plot using the following commands</p>
+<pre class="r"><code>plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(cyl))) + theme_bw()
+plt&lt;-plt+geom_point()
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>If we create a function, how can we make the sample plot:</p>
+<div id="use" class="section level3">
+<h3>use ‘{{}}’</h3>
+<pre class="r"><code>make_scatter_plot1&lt;-function(colorVar) {
+  plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor({{colorVar}}))) + theme_bw()
+  plt&lt;-plt+geom_point()
+  plt
+}
+make_scatter_plot1(cyl)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="900" style="display: block; margin: auto;" /></p>
+<p>The embrace operator ‘⁠{{’⁠ is used to create functions that call other data-masking functions. It transports a data-masked argument (an argument that can refer to columns of a data frame) from one function to another.</p>
+</div>
+<div id="use-.data" class="section level3">
+<h3>use .data</h3>
+<pre class="r"><code>make_scatter_plot2&lt;-function(colorVar) {
+  plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(.data[[colorVar]]))) + theme_bw()
+  plt&lt;-plt+geom_point()
+  plt
+}
+make_scatter_plot2(&quot;cyl&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="900" style="display: block; margin: auto;" /></p>
+</div>
+<div id="use-sym" class="section level3">
+<h3>use sym()</h3>
+<pre class="r"><code>make_scatter_plot3&lt;-function(colorVar) {
+  plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(!!sym(colorVar)) )) + theme_bw()
+  plt&lt;-plt+geom_point()
+  plt
+}
+make_scatter_plot3(&quot;cyl&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="900" style="display: block; margin: auto;" /></p>
+</div>
+<div id="use-quo" class="section level3">
+<h3>use quo()</h3>
+<pre class="r"><code>make_scatter_plot4&lt;-function(colorVar) {
+  plt&lt;-ggplot(mtcars, aes(x=wt, y=mpg, color=factor(!!colorVar) )) + theme_bw()
+  plt&lt;-plt+geom_point()
+  plt
+}
+myvar&lt;-quo(cyl)
+make_scatter_plot4(myvar)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="900" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="key-concepts" class="section level2">
+<h2>Key concepts</h2>
+<div id="defusing" class="section level3">
+<h3>defusing</h3>
+<p>When a piece of R code is defused, R doesn’t return its value, but returns the
+expression in a tree-like object to describe how to compute a value, which can
+be evaluated later in a specific environment.</p>
+<p>For example, one can use <code>expr()</code> to create a defused object.</p>
+<pre class="r"><code># return result
+1+1</code></pre>
+<pre><code>## [1] 2</code></pre>
+<pre class="r"><code># return defused object
+expr(1+1)</code></pre>
+<pre><code>## 1 + 1</code></pre>
+<p>One application of using defused object is to resume its evaluation in data
+mask, see the example below:</p>
+<pre class="r"><code>e &lt;- expr(mean(cyl))
+eval(e, mtcars)</code></pre>
+<pre><code>## [1] 6.1875</code></pre>
+<p>Some functions defuse their arguments, and when these function are called from
+another function, its argument must be provided with embrace operator {{, which
+is a combination of <code>enquo()</code> and <code>!!</code>.</p>
+<p>Defused expressions can also be created by using other functions
+such as <code>sym()</code> and <code>call()</code>, for example:</p>
+<pre class="r"><code># create a symbol
+vName&lt;-&quot;mtcars&quot;
+sym(vName)
+
+# make a call
+call(&quot;head&quot;, sym(vName))</code></pre>
+<p>There are two ways to defuse expressions, one can use
+<code>expr()</code> to defuse one’s own expression and use <code>enquo()</code> to defuse user-provided
+expressions to your function.</p>
+<p>Defusing is known as quoting in other frameworks.</p>
+<ul>
+<li><p>The equivalent of <code>expr()</code> is [base::bquote()].</p></li>
+<li><p>The equivalent of <code>enquo()</code> is [base::substitute()]. The latter returns a naked expression instead of a quosure.</p></li>
+<li><p>There is no equivalent for enquos(…) but you can defuse dots as a list of naked expressions with eval(substitute(alist(…))).</p></li>
+</ul>
+</div>
+<div id="data-masking" class="section level3">
+<h3>data-masking</h3>
+<p>Data masking means that a data.frame is inserted at the bottom of the current
+chain of environment and it takes higher precedence than the user environment.</p>
+<p>For example, if we assign a value to a variable, but this variable is invisible
+in data-masking functions as below:</p>
+<pre class="r"><code>mpg&lt;-100
+# the following function can&#39;t see it
+dplyr::summarise(mtcars, mean(mpg))</code></pre>
+<pre><code>##   mean(mpg)
+## 1  20.09062</code></pre>
+<p>As you can see, the function used the column <code>mpg</code> from the dataframe <code>mtcars</code>.</p>
+<p>One way to disambiguate the user and mask environments is to use
+<a href="https://search.r-project.org/CRAN/refmans/rlang/help/.data.html">tidy eval pronouns</a>.</p>
+<pre class="r"><code>dplyr::summarise(mtcars, mean(.env$mpg))</code></pre>
+<pre><code>##   mean(.env$mpg)
+## 1            100</code></pre>
+</div>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<p>Basically, when one wants to evaluate a variable in a different context, he should
+defuse the variable (using function such as <code>quo()</code> and <code>enquo()</code>) and
+then inject it (using <code>{{}}</code>, <code>!!</code>, <code>!!sym()</code>, etc) when evaluation is needed.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li><p>Using ggplot2 in packages: <a href="https://ggplot2.tidyverse.org/articles/ggplot2-in-packages.html" class="uri">https://ggplot2.tidyverse.org/articles/ggplot2-in-packages.html</a></p></li>
+<li><p>Functional programming: <a href="https://dcl-prog.stanford.edu/tidy-eval-detailed.html" class="uri">https://dcl-prog.stanford.edu/tidy-eval-detailed.html</a></p></li>
+<li><p>Defuse and inject patterns: <a href="https://search.r-project.org/CRAN/refmans/rlang/html/topic-metaprogramming.html" class="uri">https://search.r-project.org/CRAN/refmans/rlang/html/topic-metaprogramming.html</a></p></li>
+<li><p>Data-masking programming: <a href="https://search.r-project.org/CRAN/refmans/rlang/html/topic-data-mask-programming.html" class="uri">https://search.r-project.org/CRAN/refmans/rlang/html/topic-data-mask-programming.html</a></p></li>
+</ul>
+</div>
