@@ -1,0 +1,131 @@
+---
+title: '[Rmarkdown] Automate word document generation using Rmarkdown'
+author: Zhenguo Zhang
+date: '2024-01-28'
+slug: rmarkdown-automate-word-document-generation-using-rmarkdown
+categories:
+  - R
+  - Visualization
+  - Software
+tags:
+  - R
+  - R Markdown
+  - Programming
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+I knew that Rmarkdown was very power to generate all kinds of document formats
+such as html, pdf, word, powerpoint, etc, but until recently, I have never used
+it to generate word documents (most time, I generated html and pdf files).
+
+When I started to generate word documents using Rmarkdown, I found that it was
+not so straightforward. The main issue is how to specify the different text styles
+to different texts, such as "Heading 1", "Body Text", etc.
+
+After some research, I found that there are two major ways to apply styles to
+texts.
+
+- Use a customized word template
+
+- Use officedown/officer packages
+
+## Use a customized word template
+
+To use this approach, one need to follow the following steps:
+
+1. generate a word document using Rmarkdown, and try to include all
+  the elements you will use in the template. The content isn't important.
+
+2. then open the word document and change each style to the designed format.
+  For example, you can change the color and font of "Heading 2" and then update
+  the style to match the new setting. One can find more details 
+  [here](https://rmarkdown.rstudio.com/articles_docx.html). Note that it is very
+  **important**: don't change the text style name, because this name will be reused
+  by new documents generated from Rmarkdown. Then save this document as a template,
+  say, "my_template.docx".
+
+3. create a new Rmarkdown document, and use the elements you used in the step 1.
+  and set parameter 'reference_docx' to the path of the template in the YAML header,
+  like the following one:
+  
+  ```
+  ---
+  title: "Fancy Word Report"
+  author: "my Name"
+  output:
+    word_document:
+      reference_docx: path/to/my_template.docx
+  ---
+  ```
+
+4. Finally, knit the Rmarkdown and get the new output. In this new document, all
+  the styles should follow the same one as set in the template.
+
+To apply a specific style to certain text, one can use the so-called
+`fenced_divs` syntax, as one example:
+
+```r
+::: {custom-style="Heading 3"}
+This is my paragraph with new
+custom style.
+:::
+```
+
+One can find more examples about this syntax at https://www.andreashandel.com/posts/2020-10-07-custom-word-format/.
+
+
+## Use officedown/officer packages
+
+To set styles using the packages, one can use the following functions:
+
+- `officer::ftext("text", prop=ft_prop)`, here we can use the parameter
+  `prop` to control the color, font, boldness of text, which in turn
+  is formatted with the function `fp_text_lite()`.
+
+- `officer::fpar(..., fp_p=fp_par())` to control the layout of paragraphs,
+  such as centering texts. The formatting is controlled by the function
+  `fp_par()`.
+
+These two functions allow one to specify any formats to any text chunks
+in a paragraph or for a whole paragraph. Below is an example:
+
+```r
+ft_text<-fp_text_lite(color="red", bold=T, font.size=15, font.family="Calibri (Body)")
+fp_center<-fp_par(line_spacing = 1.5, text.align="center")
+fpar(ftext("Website: https://google.com/", ft_text), fp_p=fp_center)
+```
+
+Note that one need to specify the output format as `officedown::rdocx_document`.
+
+In fact, one can combine the styles set in a word template with the styles set
+with the `officer` package, and the following YAML header gives an example:
+
+```r
+---
+title: "officedown output"
+output:
+  officedown::rdocx_document:
+    toc: false
+    reference_docx: my_template.docx
+---
+```
+
+Any text not set by `fpar()` or `ftext()` will inherit the styles from the word
+template.
+
+I will give some examples in the future posts.
+
+Happy programming :smile:
+
+## References
+
+- officeverse: a book to describe how to use officer and officedown packages https://ardata-fr.github.io/officeverse/index.html
+
+- custom styles in pandoc: https://pandoc.org/MANUAL.html#custom-styles
+
+- charatcer vs paragraph styles: https://github.com/rstudio/rmarkdown/issues/1911
+
+- Rmd to docx tutorial: https://rmarkdown.rstudio.com/articles_docx.html
