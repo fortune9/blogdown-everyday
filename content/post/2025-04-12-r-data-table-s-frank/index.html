@@ -1,0 +1,409 @@
+---
+title: '[R] data.table''s frank()'
+author: Zhenguo Zhang
+date: '2025-04-12'
+slug: r-data-table-s-frank
+categories:
+  - R
+  - Computing
+tags:
+  - R
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)</code></pre>
+<pre class="r"><code>library(knitr)
+library(data.table)</code></pre>
+<p>One can use <code>data.table::frank()</code> to rank the rows of a data.table or simply
+a vector. Compared to the base R function <code>rank()</code>, <code>frank()</code> is faster. Today
+I will show how to use this function.</p>
+<p>First, let’s generate a example data.table with 10 rows and 3 columns,
+for simplicity, we will make first 2 columns are integer and the last one is
+a character. Also, we will duplicate some values to show how tied values are
+sorted:</p>
+<pre class="r"><code>set.seed(123)
+n &lt;- 10
+dt &lt;- data.table(
+  a = sample(1:10, n, replace = TRUE),
+  b = sample(1:10, n, replace = TRUE),
+  c = sample(letters[1:5], n, replace = TRUE)
+)
+kable(dt, caption = &quot;Example data.table&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-2">Table 1: </span>Example data.table</caption>
+<thead>
+<tr class="header">
+<th align="right">a</th>
+<th align="right">b</th>
+<th align="left">c</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="left">a</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="left">c</td>
+</tr>
+<tr class="odd">
+<td align="right">10</td>
+<td align="right">9</td>
+<td align="left">d</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">9</td>
+<td align="left">a</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="right">9</td>
+<td align="left">c</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="right">3</td>
+<td align="left">e</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td align="right">8</td>
+<td align="left">d</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">10</td>
+<td align="left">b</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="right">7</td>
+<td align="left">e</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="left">a</td>
+</tr>
+</tbody>
+</table>
+<p>First, let’s see how to use <code>frank()</code> to rank the whole data.table.</p>
+<pre class="r"><code>dt[, rank := frank(.SD)]
+kable(dt[order(rank)], caption = &quot;Ranked data.table&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 2: </span>Ranked data.table</caption>
+<thead>
+<tr class="header">
+<th align="right">a</th>
+<th align="right">b</th>
+<th align="left">c</th>
+<th align="right">rank</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">9</td>
+<td align="left">a</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="left">c</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="left">a</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">8</td>
+<td align="left">d</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">3</td>
+<td align="left">e</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">9</td>
+<td align="left">c</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="right">10</td>
+<td align="left">b</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="right">7</td>
+<td align="left">e</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="right">10</td>
+<td align="right">9</td>
+<td align="left">d</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="left">a</td>
+<td align="right">10</td>
+</tr>
+</tbody>
+</table>
+<p>As you can see, the <code>frank()</code> function ranks the rows of the data.table
+by first checking the first column, then the second column, and finally the third column.</p>
+<p>One can also sort a data.table based on selected columns, for example,
+let’s use the 2nd and 3rd columns to rank the data.table. But for this,
+one need to use its variant <em>frankv()</em>:</p>
+<pre class="r"><code>dt[, rank := frankv(.SD, cols = c(&quot;b&quot;,&quot;c&quot;))]
+kable(dt[order(rank)], caption = &quot;Ranked data.table by 2nd and 3rd columns&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 3: </span>Ranked data.table by 2nd and 3rd columns</caption>
+<thead>
+<tr class="header">
+<th align="right">a</th>
+<th align="right">b</th>
+<th align="left">c</th>
+<th align="right">rank</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="left">c</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="right">3</td>
+<td align="left">e</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="left">a</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="right">7</td>
+<td align="left">e</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td align="right">8</td>
+<td align="left">d</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">9</td>
+<td align="left">a</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="right">9</td>
+<td align="left">c</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">9</td>
+<td align="left">d</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="left">a</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">10</td>
+<td align="left">b</td>
+<td align="right">10</td>
+</tr>
+</tbody>
+</table>
+<p>Finally, we would like to talk about the <code>ties.method</code> argument. To make it simple,
+we will simiply use the 2nd column to rank the table so you can see the effect of
+the <code>ties.method</code> argument.</p>
+<pre class="r"><code>newDT &lt;- dt[, .(b)]
+newDT[, rankAverage := frank(b, ties.method = &quot;average&quot;)] # the default
+newDT[, rankFirst := frank(b, ties.method = &quot;first&quot;)]
+newDT[, rankLast := frank(b, ties.method = &quot;last&quot;)]
+newDT[, rankRandom := frank(b, ties.method = &quot;random&quot;)]
+newDT[, rankMax := frank(b, ties.method = &quot;max&quot;)]
+newDT[, rankMin := frank(b, ties.method = &quot;min&quot;)]
+newDT[, rankDense := frank(b, ties.method = &quot;dense&quot;)]
+kable(newDT[order(b)], caption = &quot;Ranked data.table by 2nd column&quot;)</code></pre>
+<table style="width:100%;">
+<caption><span id="tab:unnamed-chunk-5">Table 4: </span>Ranked data.table by 2nd column</caption>
+<colgroup>
+<col width="4%" />
+<col width="16%" />
+<col width="14%" />
+<col width="12%" />
+<col width="15%" />
+<col width="11%" />
+<col width="11%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">b</th>
+<th align="right">rankAverage</th>
+<th align="right">rankFirst</th>
+<th align="right">rankLast</th>
+<th align="right">rankRandom</th>
+<th align="right">rankMax</th>
+<th align="right">rankMin</th>
+<th align="right">rankDense</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">1.5</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">1.5</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">3.0</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">3</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="right">4.0</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="right">5.0</td>
+<td align="right">5</td>
+<td align="right">5</td>
+<td align="right">5</td>
+<td align="right">5</td>
+<td align="right">5</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="right">7.0</td>
+<td align="right">6</td>
+<td align="right">8</td>
+<td align="right">7</td>
+<td align="right">8</td>
+<td align="right">6</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="right">7.0</td>
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="right">8</td>
+<td align="right">8</td>
+<td align="right">6</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="right">7.0</td>
+<td align="right">8</td>
+<td align="right">6</td>
+<td align="right">6</td>
+<td align="right">8</td>
+<td align="right">6</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">10</td>
+<td align="right">9.5</td>
+<td align="right">9</td>
+<td align="right">10</td>
+<td align="right">9</td>
+<td align="right">10</td>
+<td align="right">9</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">9.5</td>
+<td align="right">10</td>
+<td align="right">9</td>
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="right">9</td>
+<td align="right">6</td>
+</tr>
+</tbody>
+</table>
+<p>As you can see, here are how the <code>ties.method</code> argument works:</p>
+<ul>
+<li>average: the average of the ranks of the tied values</li>
+<li>first: the order in which the values appear in the data</li>
+<li>last: the order in which the values appear in the data</li>
+<li>random: a random order for the ties</li>
+<li>max: the maximum rank of the tied values</li>
+<li>min: the minimum rank of the tied values</li>
+<li>dense: the values in a tie set get the same rank, and the rank
+value increases by 1 when moving to the next tie set. This is
+a unique feature of <code>frank()</code> and is not available in the base R.</li>
+</ul>
+<p>When one wants to use the rank to choose top N rows, it is important
+to know how the rank is computed; in this case, you may want to
+avoid the <code>ties.method</code> values: <code>max</code>, <code>min</code>, and <code>dense</code>.</p>
+<p>Happy programming :smile:</p>

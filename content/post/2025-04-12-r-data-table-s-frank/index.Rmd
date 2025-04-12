@@ -1,0 +1,98 @@
+---
+title: '[R] data.table''s frank()'
+author: Zhenguo Zhang
+date: '2025-04-12'
+slug: r-data-table-s-frank
+categories:
+  - R
+  - Computing
+tags:
+  - R
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(knitr)
+library(data.table)
+```
+
+One can use `data.table::frank()` to rank the rows of a data.table or simply
+a vector. Compared to the base R function `rank()`, `frank()` is faster. Today
+I will show how to use this function.
+
+First, let's generate a example data.table with 10 rows and 3 columns,
+for simplicity, we will make first 2 columns are integer and the last one is
+a character. Also, we will duplicate some values to show how tied values are
+sorted:
+
+```{r}
+set.seed(123)
+n <- 10
+dt <- data.table(
+  a = sample(1:10, n, replace = TRUE),
+  b = sample(1:10, n, replace = TRUE),
+  c = sample(letters[1:5], n, replace = TRUE)
+)
+kable(dt, caption = "Example data.table")
+```
+
+First, let's see how to use `frank()` to rank the whole data.table.
+
+```{r}
+dt[, rank := frank(.SD)]
+kable(dt[order(rank)], caption = "Ranked data.table")
+```
+
+As you can see, the `frank()` function ranks the rows of the data.table
+by first checking the first column, then the second column, and finally the third column.
+
+One can also sort a data.table based on selected columns, for example,
+let's use the 2nd and 3rd columns to rank the data.table. But for this,
+one need to use its variant *frankv()*:
+
+```{r}
+dt[, rank := frankv(.SD, cols = c("b","c"))]
+kable(dt[order(rank)], caption = "Ranked data.table by 2nd and 3rd columns")
+```
+
+Finally, we would like to talk about the `ties.method` argument. To make it simple,
+we will simiply use the 2nd column to rank the table so you can see the effect of
+the `ties.method` argument.
+
+```{r}
+newDT <- dt[, .(b)]
+newDT[, rankAverage := frank(b, ties.method = "average")] # the default
+newDT[, rankFirst := frank(b, ties.method = "first")]
+newDT[, rankLast := frank(b, ties.method = "last")]
+newDT[, rankRandom := frank(b, ties.method = "random")]
+newDT[, rankMax := frank(b, ties.method = "max")]
+newDT[, rankMin := frank(b, ties.method = "min")]
+newDT[, rankDense := frank(b, ties.method = "dense")]
+kable(newDT[order(b)], caption = "Ranked data.table by 2nd column")
+```
+
+As you can see, here are how the `ties.method` argument works:
+
+- average: the average of the ranks of the tied values
+- first: the order in which the values appear in the data
+- last: the order in which the values appear in the data
+- random: a random order for the ties
+- max: the maximum rank of the tied values
+- min: the minimum rank of the tied values
+- dense: the values in a tie set get the same rank, and the rank
+  value increases by 1 when moving to the next tie set. This is
+  a unique feature of `frank()` and is not available in the base R.
+  
+When one wants to use the rank to choose top N rows, it is important
+to know how the rank is computed; in this case, you may want to
+avoid the `ties.method` values: `max`, `min`, and `dense`.
+
+Happy programming :smile:
+
