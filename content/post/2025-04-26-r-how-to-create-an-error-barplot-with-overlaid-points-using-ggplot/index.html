@@ -1,0 +1,85 @@
+---
+title: '[R] How to create errorbars with overlaid points using ggplot'
+author: Zhenguo Zhang
+date: '2025-04-26'
+slug: r-how-to-create-an-error-barplot-with-overlaid-points-using-ggplot
+categories:
+  - R
+  - Software
+tags:
+  - R
+  - ggplot2
+  - plot
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<pre class="r"><code>library(ggplot2)
+library(dplyr)</code></pre>
+<p>Sometimes you may want to create a plot with the following features:</p>
+<ul>
+<li>a point to indicate the mean of a group</li>
+<li>error bars to indicate the standard deviation of the group</li>
+<li>and each group may have subgroups, which are represented by different colors.</li>
+</ul>
+<p>In this post, I will show you how to create such a plot using the <code>ggplot2</code> package in R.</p>
+<p>We will use the builtin <code>mtcars</code> dataset as an example. And we need to
+compute the following variables for later use:</p>
+<ul>
+<li>The mean mpg for each group of <code>cyl</code> (number of cylinders) and <code>gear`` (number of gears), here</code>cyl<code>is the main group and</code>gear` is the subgroup.</li>
+</ul>
+<pre class="r"><code># Load the mtcars dataset
+data(mtcars)
+# Compute the mean and standard deviation of mpg for each group
+mtcars_summary &lt;- mtcars %&gt;%
+  group_by(cyl, gear) %&gt;%
+  summarise(mean_mpg = mean(mpg), sd_mpg = sd(mpg)) %&gt;%
+  ungroup()
+# replace the NA values in sd_mpg with 1
+mtcars_summary$sd_mpg[is.na(mtcars_summary$sd_mpg)] &lt;- 1
+# convert group variables into factors
+mtcars_summary$cyl &lt;- factor(mtcars_summary$cyl)
+mtcars_summary$gear &lt;- factor(mtcars_summary$gear)</code></pre>
+<div id="create-the-plot---first-try" class="section level2">
+<h2>Create the plot - first try</h2>
+<p>Now we can create the plot using <code>ggplot2</code>. We will use the <code>geom_point()</code> function to create the points, and the <code>geom_errorbar()</code> function to create the error bars. We will also use the <code>aes()</code> function to specify the aesthetics of the plot.</p>
+<pre class="r"><code># Create the plot
+plt &lt;- ggplot(mtcars_summary, aes(x = cyl, y = mean_mpg, color = gear)) +
+  geom_point(size = 3) + # add points
+  geom_errorbar(aes(ymin = mean_mpg - sd_mpg, ymax = mean_mpg + sd_mpg), width = 0.2) + # add error bars
+  labs(x = &quot;Number of Cylinders&quot;, y = &quot;Mean MPG&quot;, color = &quot;Number of Gears&quot;) + # add labels
+  theme_minimal() + # use a minimal theme
+  theme(legend.position = &quot;top&quot;) # move the legend to the top
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="1000" /></p>
+<p>Well, it is working, but the problem is that the error bars and points are all
+aligned at the same position of x-axis. This is not what we want. We want the
+subgroups to be separated by a small distance.</p>
+</div>
+<div id="create-the-plot---second-try" class="section level2">
+<h2>Create the plot - second try</h2>
+<p>To separate the subgroups, we can use the <code>position_dodge()</code> function. This function will move the points and error bars to the left and right, so that they are not overlapping.</p>
+<pre class="r"><code>pd &lt;- position_dodge(width = 0.5)
+# Create the plot with position_dodge
+plt &lt;- ggplot(mtcars_summary, aes(x = cyl, y = mean_mpg, color = gear)) +
+  geom_point(size = 3, position = pd) + # add points with position_dodge
+  geom_errorbar(aes(ymin = mean_mpg - sd_mpg, ymax = mean_mpg + sd_mpg), width = 0.2, position = pd) + # add error bars with position_dodge
+  labs(x = &quot;Number of Cylinders&quot;, y = &quot;Mean MPG&quot;, color = &quot;Number of Gears&quot;) + # add labels
+  theme_minimal() + # use a minimal theme
+  theme(legend.position = &quot;top&quot;) # move the legend to the top
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="1000" /></p>
+<p>Cool. Isn’t it?</p>
+<p>The only difference is that we added the <code>position = pd</code> argument to the <code>geom_point()</code> and <code>geom_errorbar()</code> functions. This tells <code>ggplot2</code> to use the <code>position_dodge()</code> function to separate the subgroups.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>In this post, we learned how to create a plot with error bars and overlaid points using the <code>ggplot2</code> package in R. We also learned how to separate the subgroups using the <code>position_dodge()</code> function.</p>
+<p>If you want to learn more about the function <code>position_dodge()</code>, you can check an
+excellent post <a href="https://stackoverflow.com/questions/34889766/what-is-the-width-argument-in-position-dodge/35102486#35102486">here</a>.</p>
+<p>Happy programming! :smiley:</p>
+</div>
