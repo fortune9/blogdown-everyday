@@ -1,0 +1,60 @@
+---
+title: '[R] Use new_scale_xxx() function to add the same scale type in different ggplot
+  layers'
+author: Zhenguo Zhang
+date: '2025-05-10'
+slug: r-use-new-scale-xxx-function-to-add-the-same-scale-type-in-different-ggplot-layers
+categories:
+  - R
+tags:
+  - Bioinformatics
+  - R
+  - ggplot2
+description: ''
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<p>In one ggplot figure, normally you can only use one scale for each aesthetic mapping. For example, if you use <code>scale_color_manual()</code> to set the color scale for a layer, you cannot use another <code>scale_color_manual()</code> for another layer, or
+set the color scale more then once in the function <code>aes()</code>. However, you can use the <code>new_scale_color()</code> function from the <code>ggnewscale</code> package to add a new scale for the same aesthetic mapping in different layers.</p>
+<p>In this post, I will showcase how to use the <code>new_scale_color()</code> function to add two different color scales in a ggplot figure. The first scale will be for a discrete variable (e.g., number of cylinders), and the second scale will be for a continuous variable (e.g., density level).</p>
+<p>Load packages first.</p>
+<pre class="r"><code>library(ggplot2)
+library(ggnewscale)</code></pre>
+<p>Use the mtcars dataset for the example</p>
+<pre class="r"><code>data(mtcars)</code></pre>
+<p>Create a plot with two color scales:
+1. Points colored by ‘cyl’ (discrete)
+2. Density contours colored by density level (continuous)</p>
+<p>First, let’s make a scatter plot of <code>mpg</code> vs <code>wt</code> with points colored by the number of cylinders (<code>cyl</code>). We will use the <code>geom_point()</code> function for this layer.</p>
+<pre class="r"><code>plt &lt;- ggplot(mtcars, aes(x = wt, y = mpg)) +
+  # First layer: Scatter plot colored by cylinders (discrete variable)
+  geom_point(aes(color = factor(cyl)), size = 3) +  
+  scale_color_discrete(name = &quot;Cylinders&quot;)
+
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" width="1000" style="display: block; margin: auto;" /></p>
+<p>Set new scale for the next layer</p>
+<pre class="r"><code># Reset the color scale for the next layer
+plt &lt;- plt + new_scale_color()</code></pre>
+<p>Add a second layer: Density contours colored by density level (continuous variable)</p>
+<pre class="r"><code>plt &lt;- plt +
+  geom_density_2d(aes(color = after_stat(level))) +  
+  scale_color_viridis_c(name = &quot;Density Level&quot;, option = &quot;magma&quot;) +
+  
+  # Add labels and theme
+  labs(title = &quot;Dual Color Scales with new_scale_color()&quot;,
+       x = &quot;Weight (1000 lbs)&quot;,
+       y = &quot;Miles per Gallon&quot;) +
+  theme_minimal()
+
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="1000" style="display: block; margin: auto;" /></p>
+<p>Here I demonstrated how to use the <code>new_scale_color()</code> function from the <code>ggnewscale</code> package, one can also use <code>new_scale_fill()</code> for fill aesthetics.
+For other aesthetics, such as <code>size</code>, <code>shape</code>, etc., you can call
+<code>new_scale("size")</code>, <code>new_scale("shape")</code>, etc. to add new scales.</p>
+<p>To learn more, check the webpage <a href="https://eliocamp.github.io/ggnewscale/" class="uri">https://eliocamp.github.io/ggnewscale/</a></p>
+<p>Happy programming :smiley:</p>
