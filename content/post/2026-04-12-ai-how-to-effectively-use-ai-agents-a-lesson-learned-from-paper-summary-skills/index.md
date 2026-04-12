@@ -28,6 +28,10 @@ I have been learning how to use these tools effectively, and here are the key le
 
 - **Iterate wisely**: Don't be afraid to add constraints after seeing failure cases. However, avoid overloading the prompt with too many constraints at the beginning, as this can hinder the model's ability to generate high-quality content.
 
+- **Underlying models matter**: I found that the command line based Gemini CLI was more effective than
+  the web-based Gemini.google.com, and Qwen-code outperformed the Gemini CLI for my paper summary task. The choice of model can significantly impact the quality of the output, so it's worth experimenting with different options. Note that I have been
+  using the free models and tools.
+
 In this post, I demonstrate these points by sharing the evolution of my paper-summary agent skill. I will walk through how I iteratively refined the skill from v1 to v3 and detail the lessons I learned along the way.
 
 You can find all versions of the skill files in [this GitHub repository](https://github.com/fortune9/posts/tree/main/.agents/skills).
