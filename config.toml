@@ -7,6 +7,7 @@ theme = "diary"
 # use analytics from zhangz.sci
 googleAnalytics = "G-V3XZ2FMMBQ"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_cache$"]
+ignoreLogs = ['warning-goldmark-raw-html']
 # googleSiteVerification = "verification code" # also verified with uploading html
 # added settings
 hasCJKLanguage = false # no chinese/japanese/korean in content
@@ -101,7 +102,7 @@ enableEmoji = true # allow Emoji emotions
 [Services.RSS]
  limit = 10
 
-[Author]
+[params.author]
   name = "Zhenguo Zhang"
   email = "zhangz.sci@gmail.com"
 
