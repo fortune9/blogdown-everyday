@@ -8,3 +8,6 @@ themes/hugo-lithium
 themes/hugo-theme-diary
 resources/
 .RData
+
+.hugo_build.lock
+
