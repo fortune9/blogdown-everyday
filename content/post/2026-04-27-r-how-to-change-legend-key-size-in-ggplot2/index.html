@@ -1,0 +1,63 @@
+---
+title: '[R] How to change legend key size in ggplot2'
+author: Zhenguo Zhang
+date: '2026-04-27'
+slug: r-how-to-change-legend-key-size-in-ggplot2
+categories:
+  - R
+  - Visualization
+tags:
+  - ggplot2
+description: 'A quick tip on how to change the legend key size independently of text size in ggplot2.'
+featured_image: ''
+images: []
+comment: true
+---
+
+
+
+<p>In <code>ggplot2</code>, the legend keys (the symbols next to the labels) usually inherit their size and appearance from the layers in the plot. For example, if you have a scatter plot with very small points, the legend keys will also be very small, making them hard to see.</p>
+<p>To fix this without changing the size of the points in the actual plot, you can use the <code>override.aes</code> argument within <code>guide_legend()</code>.</p>
+<div id="the-problem-tiny-legend-keys" class="section level3">
+<h3>The Problem: Tiny Legend Keys</h3>
+<p>When plotting many data points, we often decrease the <code>size</code> to avoid overplotting. However, this makes the legend keys tiny:</p>
+<pre class="r"><code>library(ggplot2)
+
+p &lt;- ggplot(iris, aes(Sepal.Length, Sepal.Width, color = Species)) +
+  geom_point(size = 0.5) + 
+  theme_minimal() +
+  labs(title = &quot;Tiny Legend Keys&quot;)
+
+p</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/tiny-legend-1.png" alt="" width="480" /></p>
+</div>
+<div id="the-solution-using-override.aes" class="section level3">
+<h3>The Solution: Using <code>override.aes</code></h3>
+<p>By using <code>guides()</code>, we can “override” the aesthetics of the legend. This allows us to keep the small points in the plot while making the legend keys large and clear.</p>
+<p>If your legend is for the <strong>color</strong> aesthetic:</p>
+<pre class="r"><code>p_fixed &lt;- p + 
+  guides(color = guide_legend(override.aes = list(size = 5))) +
+  labs(title = &quot;Fixed Legend Keys (Size 5)&quot;)
+
+p_fixed</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/fixed-legend-1.png" alt="" width="480" /></p>
+<p>If you were using <strong>fill</strong> (e.g., in a bar plot or boxplot), you would simply change <code>color</code> to <code>fill</code>:</p>
+<pre class="r"><code>guides(fill = guide_legend(override.aes = list(size = 5)))</code></pre>
+</div>
+<div id="adjusting-legend-text-and-title-size" class="section level3">
+<h3>Adjusting Legend Text and Title Size</h3>
+<p>Note that <code>override.aes</code> only affects the symbols inside the legend. To change the size of the labels or the legend title, you should use the <code>theme()</code> function:</p>
+<pre class="r"><code>p_fixed + 
+  theme(
+    legend.text = element_text(size = 12),   # Legend labels
+    legend.title = element_text(size = 14, face = &quot;bold&quot;) # Legend title
+  )</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/theme-adjust-1.png" alt="" width="480" /></p>
+</div>
+<div id="summary" class="section level3">
+<h3>Summary</h3>
+<ul>
+<li>Use <code>guides(color = guide_legend(override.aes = list(size = ...)))</code> to change the <strong>symbol size</strong>.</li>
+<li>Use <code>theme(legend.text = element_text(size = ...))</code> to change the <strong>text size</strong>.</li>
+</ul>
+</div>
