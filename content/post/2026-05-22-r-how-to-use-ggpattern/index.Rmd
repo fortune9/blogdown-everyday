@@ -1,0 +1,180 @@
+---
+title: '[R] How to use ggpattern to add patterns to ggplot2 plots'
+author: Zhenguo Zhang
+date: '2026-05-22'
+slug: r-how-to-use-ggpattern
+categories:
+  - R
+tags:
+  - R
+  - ggplot2
+  - visualization
+  - ggpattern
+description: 'A guide on how to use the ggpattern package to add various patterns to ggplot2 plots, including installation, basic usage, and customizing pattern parameters.'
+comment: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 8, fig.height = 6)
+library(ggplot2)
+library(ggpattern)
+library(dplyr)
+```
+
+Adding patterns to plots is a great way to improve accessibility (making plots colorblind-friendly) and to add an extra dimension of information. The `ggpattern` package provides a rich set of tools to achieve this in `ggplot2`.
+
+## Basic Example with mtcars
+
+Let's start with a barplot using the `mtcars` dataset. We will map `cyl` to the x-axis, `mpg` to the y-axis, use `gear` for the fill color, and `am` for the pattern.
+
+```{r basic-example}
+# Prepare data
+df <- mtcars %>%
+  mutate(
+    cyl = factor(cyl),
+    gear = factor(gear),
+    am = factor(am, labels = c("Automatic", "Manual"))
+  )
+
+# Create barplot
+ggplot(df, aes(x = cyl, y = mpg, fill = gear)) +
+  geom_bar_pattern(
+    aes(pattern = am),
+    stat = "identity",
+    position = "dodge",
+    color = "black",
+    pattern_fill = "black",
+    pattern_spacing = 0.02,
+    pattern_key_scale_factor = 1.5
+  ) +
+  scale_pattern_manual(values = c("stripe", "crosshatch")) +
+  labs(
+    title = "MPG by Cylinders, Gear, and Transmission",
+    subtitle = "Patterns representing transmission type",
+    x = "Cylinders",
+    y = "Miles Per Gallon (MPG)",
+    fill = "Gears",
+    pattern = "Transmission"
+  ) +
+  theme_minimal()
+```
+
+## Exploring Key Parameters
+
+The `ggpattern` package allows for fine-grained control over how patterns are rendered. Here are some of the most important parameters:
+
+### 1. pattern_key_scale_factor
+
+This parameter scales the pattern density specifically in the legend. Without it, patterns in the legend can often be hard to see.
+Reduce the value will make it easier fit into the legend keys.
+
+```{r scale-factor}
+p_base <- ggplot(df, aes(x = cyl, y = mpg, fill = gear)) +
+  geom_bar_pattern(
+    aes(pattern = am),
+    stat = "identity",
+    position = "dodge",
+    color = "black",
+    pattern_spacing = 0.02
+  ) +
+  theme_minimal() +
+  labs(title = "Default vs Scaled Legend")
+
+# Default legend
+p1 <- p_base + labs(subtitle = "Default (key_scale_factor = 1)")
+
+# Scaled legend
+p2 <- p_base + 
+  geom_bar_pattern(
+    aes(pattern = am),
+    stat = "identity",
+    position = "dodge",
+    color = "black",
+    pattern_spacing = 0.02,
+    pattern_key_scale_factor = 0.5
+  ) +
+  labs(subtitle = "Scaled (key_scale_factor = 0.5)")
+
+p1
+p2
+```
+
+### 2. pattern_spacing and pattern_density
+
+`pattern_spacing` controls the distance between pattern elements (lower = denser), while `pattern_density` controls the coverage (higher = denser).
+
+```{r spacing-density}
+# Spacing effect
+ggplot(df, aes(x = cyl, y = mpg, fill = gear)) +
+  geom_bar_pattern(
+    aes(pattern = am),
+    stat = "identity",
+    position = "dodge",
+    pattern_spacing = 0.2, # Wider spacing
+    pattern_key_scale_factor = 1.5
+  ) +
+  labs(title = "Effect of pattern_spacing = 0.5 (Sparser)") +
+  theme_minimal()
+
+# Density effect
+ggplot(df, aes(x = cyl, y = mpg, fill = gear)) +
+  geom_bar_pattern(
+    aes(pattern = am),
+    stat = "identity",
+    position = "dodge",
+    pattern_density = 0.8, # Higher density
+    pattern_key_scale_factor = 1.5
+  ) +
+  labs(title = "Effect of pattern_density = 0.8 (Denser)") +
+  theme_minimal()
+```
+
+### 3. pattern_fill
+
+`pattern_fill` sets the color of the pattern elements themselves.
+
+```{r pattern-fill}
+ggplot(df, aes(x = cyl, y = mpg, fill = gear)) +
+  geom_bar_pattern(
+    aes(pattern = am),
+    stat = "identity",
+    position = "dodge",
+    pattern_fill = "white", # White pattern lines
+    pattern_density = 0.5, # make it bigger so that the color is easier to see
+    pattern_spacing = 0.02,
+    pattern_key_scale_factor = 1.5
+  ) +
+  labs(title = "Effect of pattern_fill = 'white'") +
+  theme_minimal()
+```
+
+### 4. pattern_shape
+
+For geometric patterns like `regular_polygon`, `pattern_shape` controls the number of sides.
+
+```{r pattern-shape}
+ggplot(df, aes(x = cyl, y = mpg, fill = gear)) +
+  geom_bar_pattern(
+    aes(pattern_shape=gear),
+    pattern = "regular_polygon",
+    stat = "identity",
+    position = "dodge",
+    pattern_size = 0.5, # stroke line width
+    pattern_density = 0.5, # increase the shape size
+    pattern_spacing = 0.03,
+    pattern_key_scale_factor = 1.5
+  ) +
+  scale_pattern_shape_manual(values = c("3"="circle", "4"="convex6", "5"="square")) + # manually set shapes
+  labs(title = "Effect of mapping pattern_shape to gear") +
+  theme_minimal()
+```
+
+## Troubleshooting
+
+If you encounter issues installing or loading `ggpattern` on Linux, you may need to install the following system dependencies:
+
+```bash
+sudo apt-get install libudunits2-dev
+sudo apt install libproj22
+sudo apt-get install libgdal-dev
+```
