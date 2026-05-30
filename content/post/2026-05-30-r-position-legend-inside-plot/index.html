@@ -1,0 +1,101 @@
+---
+title: '[R] How to Position the Legend Inside a Plot in ggplot2'
+author: Zhenguo Zhang
+date: '2026-05-30'
+slug: r-position-legend-inside-plot
+categories:
+  - R
+  - Visualization
+tags:
+  - ggplot2
+  - legends
+  - R
+description: 'A guide on how to place and fine-tune legend positioning inside a ggplot2 plot using several examples.'
+featured_image: ''
+images: []
+comment: true
+---
+
+
+
+<p>By default, <code>ggplot2</code> places the legend outside the plot area (usually on the right). However, sometimes you may want to move the legend inside the plot to save space or improve the layout. This post explores how to achieve this using <code>theme()</code> parameters.</p>
+<div id="example-1-basic-usage-of-legend.position" class="section level2">
+<h2>Example 1: Basic Usage of <code>legend.position</code></h2>
+<p>The simplest way to move a legend inside the plot is by providing a numeric vector of length two to the <code>legend.position</code> argument in <code>theme()</code>. These coordinates represent the relative position within the plot panel, ranging from 0 to 1. Check the
+section on <a href="#key-positioning-controls">“Key Positioning Controls”</a> at the end for a detailed explanation of the coordinate system.</p>
+<pre class="r"><code>library(ggplot2)
+
+ggplot(mtcars, aes(wt, mpg, color = factor(cyl))) +
+  geom_point(size = 3) +
+  theme_bw() +
+  theme(legend.position = c(0.8, 0.8))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/example1-1.png" alt="" width="672" /></p>
+</div>
+<div id="example-2-fine-tuning-with-justification-and-background" class="section level2">
+<h2>Example 2: Fine-Tuning with Justification and Background</h2>
+<p>When you place a legend inside, you often need to adjust which part of the legend box aligns with your coordinates and handle the background if it obscures data.</p>
+<ul>
+<li><strong><code>legend.justification</code></strong>: Controls the anchor point of the legend box. For example, <code>c("right", "top")</code> means the top-right corner of the legend box will be placed at the specified coordinates.</li>
+<li><strong><code>legend.background</code></strong>: Use <code>element_blank()</code> to make the background transparent.</li>
+</ul>
+<pre class="r"><code>ggplot(mtcars, aes(wt, mpg, color = factor(cyl))) +
+  geom_point(size = 3) +
+  theme_bw() +
+  theme(
+    legend.position = c(1, 1),
+    legend.justification = c(&quot;right&quot;, &quot;top&quot;),
+    legend.background = element_blank()
+  )</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/example2-1.png" alt="" width="672" /></p>
+</div>
+<div id="example-3-positioning-in-faceted-plots" class="section level2">
+<h2>Example 3: Positioning in Faceted Plots</h2>
+<p>Moving the legend inside a faceted plot works similarly: the whole figure is considered as
+one plot for the coordinate system. You can use the coordinates to place it within one of the empty spaces or over a specific panel.
+In the following example, the legend is placed in the bottom center of the plot, and a background is added to improve readability:</p>
+<pre class="r"><code>ggplot(mtcars, aes(wt, mpg, color = factor(cyl))) +
+  geom_point(size = 3) +
+  facet_wrap(~am) +
+  theme_bw() +
+  theme(
+    legend.position = c(0.5, 0.2),
+    legend.background = element_rect(fill = &quot;white&quot;, color = &quot;grey80&quot;)
+  )</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/example3-1.png" alt="" width="672" /></p>
+</div>
+<div id="example-4-the-empty-space-trick-for-faceted-plots" class="section level2">
+<h2>Example 4: The “Empty Space” Trick for Faceted Plots</h2>
+<p>If you have a panel which doesn’t have any data, and then it is the perfect spot to
+place legend. To show this, the facet variable <code>carb</code> has only 3 values, and we
+will make a 2x2 facet grid. We will also remove the background and border of the legend.
+The following example shows this:</p>
+<pre class="r"><code># Use 3 categories to leave the 4th spot in a 2x2 grid empty
+mtcars_subset &lt;- mtcars[mtcars$carb %in% c(1, 2, 4), ]
+
+ggplot(mtcars_subset, aes(wt, mpg, color = factor(cyl))) +
+  geom_point(size = 3) +
+  facet_wrap(~carb, nrow = 2, ncol = 2) +
+  theme_bw() +
+  theme(
+    # Coordinates c(0.75, 0.25) target the center of the empty bottom-right area
+    legend.position = c(0.75, 0.25),
+    legend.background = element_blank(),
+    legend.justification = &quot;center&quot;
+  )</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/example4-1.png" alt="" width="672" /></p>
+</div>
+<div id="key-positioning-controls" class="section level2">
+<h2>Key Positioning Controls</h2>
+<p>To master legend positioning, keep these three controls in mind:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Coordinate System</strong>: The coordinates <code>c(X, Y)</code> represent a relative scale from 0 to 1 across the plot panel.
+<ul>
+<li><code>c(0, 0)</code>: Bottom-left corner</li>
+<li><code>c(1, 1)</code>: Top-right corner</li>
+<li><code>c(0.5, 0.5)</code>: Center of the plot</li>
+</ul></li>
+<li><strong>Anchor Point (<code>legend.justification</code>)</strong>: Use this to control which part of the legend box aligns with your coordinates. For example, <code>c("right", "top")</code> ensures the top-right corner of the legend box sits exactly at your target coordinate.</li>
+<li><strong>Background Removal</strong>: If your legend blocks data points, clear the legend box background using <code>legend.background = element_blank()</code>. Alternatively, use <code>element_rect()</code> to give it a semi-transparent or styled background.</li>
+</ol>
+<p>Happy Programming!</p>
+</div>
