@@ -17,13 +17,15 @@ comment: true
 
 When running Nextflow pipelines on AWS Batch, you might expect that changing S3 configuration options under `aws.client.*` (such as `maxConnections`) would tune the data transfer performance during task input/output staging. However, Nextflow's documentation is unclear about how these options affect S3 data transfer. You might change parameters like `aws.client.maxConnections` only to find they have absolutely no effect on input data staging by Nextflow tasks.
 
-By leveraging AI's power to analyze the Nextflow codebase, I finally dug into the code and figured out why: S3 data transfers actually run across two entirely different environments—the **Head Node** running Nextflow and the **EC2 Execution Instances** (started by AWS Batch for running individual tasks).
+By leveraging AI's power to analyze the Nextflow codebase, I finally dug into the code and figured out why: S3 data transfers actually run across two entirely different environments—the **Head Node** running Nextflow and the **EC2 Execution Instances** (started by AWS Batch for running individual tasks). 
+
+**Note** that this post was written based on the information given by AI agent, so please let me know if you find any mistakes or inaccuracies in the content. I will update the post accordingly.
 
 ---
 
 ### The Two S3 Transfer Layers
 
-Data staging is divided into two separate processes running on different machines:
+Data transfer processes are divided into two separate groups based on different running machines:
 
 | Layer | Environment (Machine) | Run by | Governed by | Key Operations |
 |---|---|---|---|---|
@@ -36,7 +38,7 @@ Data staging is divided into two separate processes running on different machine
 
 ### How Staging Works in Classic Mode
 
-In classic (non-Fusion) mode, Nextflow writes the staging script from the head node, but the EC2 container does the actual staging work:
+Normally, Nextflow writes the staging script from the head node, but the EC2 container does the actual staging work:
 1. `AwsBatchScriptLauncher` embeds bash snippets into the `.command.run` script.
 2. Inside the container, the Batch executor downloads the runner script: `aws s3 cp .command.run - | bash`.
 3. The script defines download/upload functions (`nxf_s3_download`, `nxf_s3_upload`) using the container's `aws` CLI.
@@ -82,6 +84,6 @@ If you need fine-grained transfer rate control to prevent instances from crashin
 
 ---
 
-### A Note on Fusion Mode
+### A Note on Fusion file system
 
 When Fusion is enabled, **no** `aws s3` CLI staging occurs inside the container. Fusion mounts S3 directly as a POSIX filesystem on the EC2 instance and does its own transfers. Staging is therefore governed by Fusion/wave settings instead of standard Nextflow `aws` S3 CLI configs.
