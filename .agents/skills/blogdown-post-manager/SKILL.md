@@ -53,6 +53,7 @@ comment: true
   knitr::opts_chunk$set(echo = TRUE)
   ```
   ````
+- **Do NOT automatically knit or render `.Rmd` files**: Do not run `rmarkdown::render()`, `knitr::knit()`, or any knitting scripts automatically after creating or editing `.Rmd` files. Leave rendering to the user or the blogdown build pipeline.
 
 ## Usage Examples
 
