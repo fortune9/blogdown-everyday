@@ -1,0 +1,268 @@
+---
+title: '[R] Understanding position_dodge() and position_dodge2() in ggplot2'
+author: Zhenguo Zhang
+date: '2026-08-30'
+slug: r-understanding-position-dodge-and-position-dodge2-in-ggplot2
+categories:
+  - R
+  - Visualization
+tags:
+  - R
+  - ggplot2
+description: 'A deep dive into position_dodge() and position_dodge2() in ggplot2, comparing width parameters, dodging behavior, and how preserve="single" handles missing elements.'
+featured_image: ''
+images: []
+comment: yes
+---
+
+
+
+<p>In <code>ggplot2</code>, when displaying grouped data along categorical axes (such as grouped bar charts, boxplots, or error bars), horizontal dodging is used to prevent elements from overlapping at each categorical position. <code>ggplot2</code> provides two primary dodging position functions: <code>position_dodge()</code> and <code>position_dodge2()</code>.</p>
+<p>In this post, we will explore:</p>
+<ol style="list-style-type: decimal">
+<li>How the <code>width</code> parameter in <code>position_dodge()</code> interacts with the parent geom’s <code>width</code>.</li>
+<li>The core differences between <code>position_dodge2()</code> and <code>position_dodge()</code>, including why changing <code>width</code> in <code>position_dodge2()</code> often has no visual effect.</li>
+<li>How <code>preserve = "single"</code> behaves when elements of a group variable are missing at a given x-axis level.</li>
+</ol>
+<div id="definition-of-terms" class="section level3">
+<h3>Definition of Terms</h3>
+<p>To keep our explanations clear and consistent throughout this post, we define two key concepts:</p>
+<ul>
+<li><strong>x-axis level</strong>: The discrete value or category on the x-axis. In our examples using <code>mtcars</code>, the x-axis level is <code>cyl</code> (with levels <code>4</code>, <code>6</code>, and <code>8</code>).</li>
+<li><strong>group variable</strong>: The variable that divides items into subgroups at each x-axis level, typically mapped to an aesthetic like <code>fill</code> or <code>color</code>. In our examples, the group variable is <code>gear</code> (with levels <code>3</code>, <code>4</code>, and <code>5</code>).</li>
+<li><strong>dodged elements</strong>: The individual visual marks (e.g. bars) corresponding to each level of the group variable at a specific x-axis level.</li>
+</ul>
+<pre class="r"><code>library(ggplot2)
+library(patchwork)</code></pre>
+<hr />
+</div>
+<div id="the-width-parameter-in-position_dodge" class="section level2">
+<h2>1. The <code>width</code> Parameter in <code>position_dodge()</code></h2>
+<div id="what-does-width-control" class="section level3">
+<h3>What does <code>width</code> control?</h3>
+<p>In <code>position_dodge(width = ...)</code>, <code>width</code> specifies the <strong>total dodging span</strong> (interval) on the x-axis into which all dodged elements for a given x-axis level are arranged side-by-side.</p>
+<p>By default, if you do not explicitly supply <code>width</code> to <code>position_dodge()</code>, it <strong>inherits its value from the parent geom</strong> (e.g., <code>geom_bar()</code> defaults to <code>width = 0.9</code>).</p>
+</div>
+<div id="interaction-between-geom_barwidth-and-position_dodgewidth" class="section level3">
+<h3>Interaction between <code>geom_bar(width)</code> and <code>position_dodge(width)</code></h3>
+<ul>
+<li><strong><code>geom_bar(width = ...)</code></strong>: Sets the total physical width allocated to the bars at each x-axis level. The individual bar width is derived by dividing this value by the number of elements at that x-axis level.</li>
+<li><strong><code>position_dodge(width = ...)</code></strong>: Sets the total span on the x-axis across which the center positions of the dodged elements are calculated and spaced.</li>
+</ul>
+<p>Both parameters use x-axis coordinate units (where the distance between adjacent discrete x-axis levels is <code>1.0</code>).</p>
+<p>Let’s examine how varying both parameters affects the layout using the <code>mtcars</code> dataset (plotting mean <code>mpg</code> across x-axis level <code>cyl</code>, with group variable <code>gear</code> mapped to <code>fill</code>):</p>
+<pre class="r"><code># Base plot configuration
+base_p &lt;- ggplot(mtcars, aes(x = factor(cyl), y = mpg, fill = factor(gear))) +
+  labs(x = &quot;Cylinders (x-axis level)&quot;, y = &quot;Mean MPG&quot;, fill = &quot;Gear (group variable)&quot;) +
+  theme_minimal(base_size = 11)
+
+# Case 1: Default matching widths (0.9 / 0.9)
+# Bars touch neatly within each x-axis level
+p1 &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    width = 0.9, 
+    position = position_dodge(width = 0.9)
+  ) +
+  ggtitle(&quot;1. Matching widths (0.9 / 0.9)&quot;, subtitle = &quot;Bars touch neatly within each x-axis level&quot;)
+
+# Case 2: geom_bar width (0.5) &lt; dodge width (0.9)
+# Dodging span is 0.9, but bars are narrower -&gt; gaps appear between bars
+p2 &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    width = 0.5, 
+    position = position_dodge(width = 0.9)
+  ) +
+  ggtitle(&quot;2. geom_bar(0.5) &lt; dodge(0.9)&quot;, subtitle = &quot;Gaps created between dodged elements&quot;)
+
+# Case 3: geom_bar width (0.9) &gt; dodge width (0.5)
+# Dodging span is narrower than bar widths -&gt; bars overlap
+p3 &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    width = 0.9, 
+    position = position_dodge(width = 0.5)
+  ) +
+  ggtitle(&quot;3. geom_bar(0.9) &gt; dodge(0.5)&quot;, subtitle = &quot;Dodged elements overlap&quot;)
+
+# Case 4: Both changed to 0.6
+# Group as a whole is narrower, bars touch, larger separation between x-axis levels
+p4 &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    width = 0.6, 
+    position = position_dodge(width = 0.6)
+  ) +
+  ggtitle(&quot;4. Both set to 0.6&quot;, subtitle = &quot;Compact cluster, wider space between x-axis levels&quot;)
+
+(p1 | p2) / (p3 | p4)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/section-1-dodge-width-1.png" alt="" width="1800" style="display: block; margin: auto;" /></p>
+<p>As demonstrated:
+- Increasing <code>width</code> in <code>geom_bar()</code> increases the individual width of dodged elements at that x-axis level.
+- Increasing <code>width</code> in <code>position_dodge()</code> increases the total dodging span across which elements are spread.
+- When both values are equal, the dodged elements within each x-axis level touch each other without overlapping or leaving gaps.</p>
+<hr />
+</div>
+</div>
+<div id="differences-between-position_dodge2-and-position_dodge" class="section level2">
+<h2>2. Differences Between <code>position_dodge2()</code> and <code>position_dodge()</code></h2>
+<p>While <code>position_dodge()</code> was originally designed for simple geoms with fixed-width positions (like <code>geom_bar</code> and <code>geom_col</code>), <code>position_dodge2()</code> was introduced to handle geoms with variable widths or explicit intervals (<code>xmin</code> to <code>xmax</code>), such as <code>geom_boxplot()</code>, <code>geom_rect()</code>, and <code>geom_linerange()</code>.</p>
+<div id="key-differences" class="section level3">
+<h3>Key Differences:</h3>
+<ol style="list-style-type: decimal">
+<li><strong>Boundary-Based Packing vs. Fixed Slot Offsets</strong>:
+<ul>
+<li><code>position_dodge()</code> divides the total dodge width at an x-axis level into fixed slots and places each level of the group variable into its designated slot.</li>
+<li><code>position_dodge2()</code> packs elements (for different levels of the group variable) sequentially side-by-side using the bounding boxes of the geoms.</li>
+</ul></li>
+<li><strong>The <code>width</code> Parameter Has No Visual Effect in <code>position_dodge2()</code> with Bars</strong>:
+<ul>
+<li>Because <code>position_dodge2()</code> arranges bars based on their pre-computed bounding intervals rather than calculating center slot offsets from a dodge span, changing <code>width</code> in <code>position_dodge2()</code> produces no change in the plot output when bar widths are already defined by the parent geom.</li>
+<li>Bar widths must be controlled directly via <code>geom_bar(width = ...)</code>.</li>
+</ul></li>
+<li><strong>Built-in <code>padding</code> and <code>reverse</code> Support</strong>:
+<ul>
+<li><code>padding</code>: Adds proportional space between dodged elements at the same x-axis level without requiring manual mismatch of geom and dodge widths.</li>
+<li><code>reverse = TRUE</code>: Reverses the left-to-right plotting order of the group variable without needing to alter factor levels.</li>
+</ul></li>
+</ol>
+</div>
+<div id="demo-width-has-no-effect-in-position_dodge2" class="section level3">
+<h3>Demo: <code>width</code> Has No Effect in <code>position_dodge2()</code></h3>
+<p>Below, we compare <code>position_dodge2(width = 0.3)</code> against <code>position_dodge2(width = 0.9)</code>. Notice that the two plots are completely identical:</p>
+<pre class="r"><code># Changing width in position_dodge2 produces identical output
+p_d2_w03 &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    position = position_dodge2(width = 0.3)
+  ) +
+  ggtitle(&quot;position_dodge2(width = 0.3)&quot;, subtitle = &quot;Width parameter has no visual effect&quot;)
+
+p_d2_w09 &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    position = position_dodge2(width = 0.9)
+  ) +
+  ggtitle(&quot;position_dodge2(width = 0.9)&quot;, subtitle = &quot;Identical layout to width = 0.3&quot;)
+
+p_d2_w03 | p_d2_w09</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/section-2-dodge2-no-effect-1.png" alt="" width="2000" style="display: block; margin: auto;" /></p>
+</div>
+<div id="creating-spacing-with-padding-and-reversing-order-with-reverse" class="section level3">
+<h3>Creating Spacing with <code>padding</code> and Reversing Order with <code>reverse</code></h3>
+<p>Instead of altering <code>width</code>, <code>position_dodge2()</code> provides the <code>padding</code> and <code>reverse</code> parameters:</p>
+<pre class="r"><code># Using padding and reverse in position_dodge2
+p_dodge2_demo &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    position = position_dodge2(padding = 0.2, reverse = TRUE)
+  ) +
+  labs(
+    title = &quot;position_dodge2(padding = 0.2, reverse = TRUE)&quot;,
+    subtitle = &quot;Built-in bar padding and reversed order of group variable&quot;
+  )
+
+p_dodge2_demo</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/section-2-dodge2-padding-reverse-1.png" alt="" width="1800" style="display: block; margin: auto;" /></p>
+<hr />
+</div>
+</div>
+<div id="handling-missing-elements-with-preserve-single" class="section level2">
+<h2>3. Handling Missing Elements with <code>preserve = "single"</code></h2>
+<p>A significant functional difference between <code>position_dodge()</code> and <code>position_dodge2()</code> occurs when certain levels of the group variable are absent at a specific x-axis level.</p>
+<p>Let’s inspect the count of observations across <code>cyl</code> (x-axis level) and <code>gear</code> (group variable) in <code>mtcars</code>:</p>
+<pre class="r"><code>table(mtcars$cyl, mtcars$gear)</code></pre>
+<pre><code>##    
+##      3  4  5
+##   4  1  8  2
+##   6  2  4  1
+##   8 12  0  2</code></pre>
+<p>At the x-axis level <strong><code>cyl = 8</code></strong>, the group variable <code>gear</code> contains observations for gears <code>3</code> (12 cars) and <code>5</code> (2 cars), but <strong><code>gear = 4</code> is completely missing (0 cars)</strong>.</p>
+<p>When we set <code>preserve = "single"</code> to ensure that all individual bar widths remain uniform across all x-axis levels:</p>
+<ul>
+<li><strong><code>position_dodge(preserve = "single")</code></strong>: Retains fixed slot assignments. Because <code>gear = 4</code> is missing at <code>cyl = 8</code>, it leaves a <strong>blank gap</strong> in the middle where <code>gear = 4</code> would normally reside.</li>
+<li><strong><code>position_dodge2(preserve = "single")</code></strong>: Preserves individual bar width while <strong>re-centering the remaining dodged elements</strong>, packing them side-by-side without leaving an empty gap.</li>
+</ul>
+<pre class="r"><code># position_dodge with preserve = &quot;single&quot;
+p_dodge_single &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    position = position_dodge(preserve = &quot;single&quot;)
+  ) +
+  labs(
+    title = &quot;position_dodge(preserve = &#39;single&#39;)&quot;,
+    subtitle = &quot;Leaves an empty gap for missing gear = 4 at cyl = 8&quot;
+  )
+
+# position_dodge2 with preserve = &quot;single&quot;
+p_dodge2_single &lt;- base_p +
+  geom_bar(
+    stat = &quot;summary&quot;, 
+    fun = &quot;mean&quot;, 
+    position = position_dodge2(preserve = &quot;single&quot;)
+  ) +
+  labs(
+    title = &quot;position_dodge2(preserve = &#39;single&#39;)&quot;,
+    subtitle = &quot;Re-centers remaining elements (no gap at cyl = 8)&quot;
+  )
+
+# Side-by-side comparison
+p_dodge_single | p_dodge2_single</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/section-3-preserve-single-1.png" alt="" width="2000" style="display: block; margin: auto;" /></p>
+<p>Note that if one sets preserve = “total”, then you would not see any difference, because the bars are re-stretched
+to ensure the bars from each categorical level occupy all the width assigned to that level.</p>
+<hr />
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Feature</th>
+<th align="left"><code>position_dodge()</code></th>
+<th align="left"><code>position_dodge2()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>Primary Use Cases</strong></td>
+<td align="left">Simple 1D fixed-width geoms (<code>geom_bar</code>, <code>geom_col</code>)</td>
+<td align="left">Interval &amp; variable-width geoms (<code>geom_boxplot</code>, <code>geom_rect</code>, <code>geom_linerange</code>) and bars</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>Role of <code>width</code> Parameter</strong></td>
+<td align="left">Sets total dodging span across each x-axis level</td>
+<td align="left">Has no visual effect on bars with predefined geom width</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>Missing Elements (<code>preserve="single"</code>)</strong></td>
+<td align="left">Leaves empty slot / gap at the missing level</td>
+<td align="left">Re-centers remaining dodged elements together</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>Padding Between Elements</strong></td>
+<td align="left">Manual (<code>geom_bar(width) &lt; position_dodge(width)</code>)</td>
+<td align="left">Built-in via <code>padding = ...</code> argument</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>Reverse Plotting Order</strong></td>
+<td align="left">Requires re-leveling the group variable</td>
+<td align="left">Built-in via <code>reverse = TRUE</code> argument</td>
+</tr>
+</tbody>
+</table>
+</div>
