@@ -1,0 +1,204 @@
+---
+title: '[Statistics] Collinearity in regression'
+author: Zhenguo Zhang
+date: '2026-10-16'
+slug: statistics-collinearity-in-regression
+categories:
+  - Statistics
+  - R
+tags:
+  - R
+  - regression
+description: ''
+featured_image: ''
+images: []
+comment: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 7, fig.height = 7)
+```
+
+```{r}
+library(knitr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(broom)
+```
+
+## Problem
+
+When performing regression analysis, you may encounter two or more predictors that are highly correlated. This is called collinearity or multicollinearity. It can cause problems in estimating the regression coefficients and interpreting the results.
+
+In this post, I will show how collinearity can affect regression analysis, how to detect
+collinearity, and how to deal with it.
+
+## Example: one predictor is a linear function of another predictor
+
+Let's simulate data with the following variables:
+
+- `X1`: a random variable drawn from a normal distribution with mean 0 and standard deviation 1.
+- `X2`: another random variable drawn from a normal distribution with mean 0 and standard deviation 1, independent of `X1`.
+- `Z`: a variable linearly related to `X2`, defined as `Z = 5*X2 + noise`, where the noise is drawn from a normal distribution with mean 0 and standard deviation 1.
+- `Y`: a linear combination of `X1` and `X2` plus noise, defined as `Y = 3*X1 + 2*X2 + noise`, where the noise is drawn from a normal distribution with mean 0 and standard deviation 1.
+
+```{r}
+set.seed(123)
+n <- 100
+X1 <- rnorm(n, mean = 0, sd = 1)
+X2 <- rnorm(n, mean = 0, sd = 1)
+Z <- 5 * X2 + rnorm(n, mean = 0, sd = 1)
+Y <- 3 * X1 + 2 * X2 + rnorm(n, mean = 0, sd = 1)
+```
+
+The correlation coefficients among the three predictors are:
+
+```{r}
+kable(cor(cbind(X1, X2, Z)), caption="Correlation of the predictors")
+```
+
+Now let's fit two linear regression models: one with `X1` and `X2` as predictors, and another with `X1`, `X2`, and `Z` as predictors.
+We will then examine how the following metrics change: coefficients, standard errors, t-values, p-values, R-squared, adjusted R-squared.
+
+```{r}
+fit1 <- lm(Y ~ X1 + X2)
+fit2 <- lm(Y ~ X1 + X2 + Z)
+coef_results <- rbind(
+  tidy(fit1) %>% mutate(model = "fit1"),
+  tidy(fit2) %>% mutate(model = "fit2")
+)
+# move model to the first column
+coef_results <- coef_results %>% select(model, everything())
+# now R-squared and adjusted R-squared
+rsq_results <- rbind(
+  glance(fit1) %>% mutate(model = "fit1"),
+  glance(fit2) %>% mutate(model = "fit2")
+) %>%
+  select(model, everything())
+```
+
+```{r}
+kable(coef_results, caption = "The coefficients and statistics")
+kable(rsq_results, caption = "The goodness of fit")
+```
+
+As the results show, the first model, `fit1`, roughly captures the true relationship in the simulated data,
+and both coefficients are highly statistically significant.
+
+Adding `Z` to the regression model produces several changes: (1) the coefficient for `X2`
+becomes smaller, (2) its standard error increases more than fivefold, and (3)
+the p-value for the coefficient test consequently increases substantially. Overall,
+the model's R-squared changes little, but its AIC and BIC values increase,
+suggesting that the model with three predictors is less favorable than the model with two predictors.
+
+In summary, including a predictor that is highly correlated with an existing
+predictor reduces the statistical significance of the existing predictor.
+
+
+## Example: two predictors with different levels of correlation
+
+Now let's simulate datasets containing two variables with different levels of
+correlation. We will use [Cholesky decomposition](https://en.wikipedia.org/wiki/Cholesky_decomposition)
+to simulate the data.
+
+First, let's write a function that simulates data for a specified
+correlation coefficient:
+
+```{r}
+simulate_correlated_data<-function(rho, n=100, seed=NULL) {
+  if(is.null(seed)) {
+    seed < Sys.time()
+  }
+  set.seed(seed)
+  x <- rnorm(n)
+  z <- rnorm(n)
+  y <- rho*x + sqrt(1-rho^2)*z
+  return(cbind(x,y))
+}
+```
+
+Now let's simulate five datasets with target correlations of
+0.1, 0.3, 0.5, 0.8, and 0.95 between the two predictors. We will also make both predictors
+contribute to the response variable so that we can examine how different levels of correlation
+affect the regression fit:
+
+```{r}
+n<-100
+rhos<-c(0.1, 0.3, 0.5, 0.8, 0.95)
+simulated_data <- lapply(rhos, simulate_correlated_data, n=n)
+# let's calculate the correlation coefficients for the simulated data
+simulated_rhos<-sapply(simulated_data, function(d) cor(d[,"x"],d[, "y"]))
+kable(cbind(expected_rho=rhos, actual_rho=simulated_rhos))
+```
+
+The correlation coefficient, rho, in each simulated dataset may not exactly
+match the specified value because of random sampling, but we can still examine how the level of correlation affects
+the regression.
+
+```{r}
+ fits <- lapply(simulated_data, function(d) {
+          x1<-d[,"x"]
+          x2<-d[, "y"]
+          y <- 10*x1 + 3*x2 + rnorm(n)
+          fit<-lm(y~x1 + x2)
+          return(fit)
+          } 
+          )
+coef_results<-lapply(seq_along(rhos),
+                     function(i) {
+                       tidy(fits[[i]]) %>%
+                         mutate(rho = rhos[i]) %>%
+                         select(rho, everything())
+                     }
+                     )
+coef_results <- do.call(rbind, coef_results)
+kable(coef_results, caption = "Regression statistics with different correlation strengths among predictors")
+```
+
+Let's plot all the metrics:
+
+```{r}
+coef_results <- coef_results %>% 
+    mutate(rho = factor(rho)) %>%
+    pivot_longer(
+      cols = estimate:p.value,
+      names_to = "metric",
+      values_to = "value"
+    )
+```
+
+```{r, fig.width=10, fig.height=10}
+plt <- ggplot(coef_results, aes(x=rho, y=value)) +
+      geom_point(aes(color=term)) +
+      facet_wrap(~ metric, ncol=2, scales="free_y") +
+      theme(legend.position = "top")
+plt
+```
+
+The plots show the following patterns as the correlation between the predictors increases:
+
+- The estimated coefficients change little, although some variation remains.
+- The p-values for both predictors remain very small.
+- The test statistics become smaller as rho increases.
+- The standard errors increase as rho increases.
+- Based on the last two observations, the p-values for the predictors should become larger, i.e., less significant.
+
+In summary, when the predictors in a regression are correlated, the test
+for each coefficient becomes less statistically significant, even though the magnitudes
+of the coefficients remain close to the values used to simulate the data.
+
+## Takeaways
+
+- When one predictor, `Z`, is a linear function of another predictor, `X`, and has no direct
+  relationship with the response variable, including `Z` makes the test for the
+  true predictor `X` less statistically significant. The coefficient for `Z`
+  may not be significant because, after accounting for `X`, `Z` has no effect on `Y`.
+- When two predictors both affect `Y`, the statistical significance of their
+  coefficients decreases as the correlation between the predictors increases, even though the
+  magnitudes of the coefficients may remain close to the true values.
+
+Taken together, these examples suggest that you may want to exclude certain variables from your regression unless you
+know they affect the response or want to examine the effects of other predictors
+after controlling for those variables.
+

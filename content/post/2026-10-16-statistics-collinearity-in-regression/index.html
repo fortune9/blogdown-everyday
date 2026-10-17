@@ -1,0 +1,497 @@
+---
+title: '[Statistics] Collinearity in regression'
+author: Zhenguo Zhang
+date: '2026-10-16'
+slug: statistics-collinearity-in-regression
+categories:
+  - Statistics
+  - R
+tags:
+  - R
+  - regression
+description: ''
+featured_image: ''
+images: []
+comment: true
+---
+
+
+
+<pre class="r"><code>library(knitr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(broom)</code></pre>
+<div id="problem" class="section level2">
+<h2>Problem</h2>
+<p>When performing regression analysis, you may encounter two or more predictors that are highly correlated. This is called collinearity or multicollinearity. It can cause problems in estimating the regression coefficients and interpreting the results.</p>
+<p>In this post, I will show how collinearity can affect regression analysis, how to detect
+collinearity, and how to deal with it.</p>
+</div>
+<div id="example-one-predictor-is-a-linear-function-of-another-predictor" class="section level2">
+<h2>Example: one predictor is a linear function of another predictor</h2>
+<p>Let’s simulate data with the following variables:</p>
+<ul>
+<li><code>X1</code>: a random variable drawn from a normal distribution with mean 0 and standard deviation 1.</li>
+<li><code>X2</code>: another random variable drawn from a normal distribution with mean 0 and standard deviation 1, independent of <code>X1</code>.</li>
+<li><code>Z</code>: a variable linearly related to <code>X2</code>, defined as <code>Z = 5*X2 + noise</code>, where the noise is drawn from a normal distribution with mean 0 and standard deviation 1.</li>
+<li><code>Y</code>: a linear combination of <code>X1</code> and <code>X2</code> plus noise, defined as <code>Y = 3*X1 + 2*X2 + noise</code>, where the noise is drawn from a normal distribution with mean 0 and standard deviation 1.</li>
+</ul>
+<pre class="r"><code>set.seed(123)
+n &lt;- 100
+X1 &lt;- rnorm(n, mean = 0, sd = 1)
+X2 &lt;- rnorm(n, mean = 0, sd = 1)
+Z &lt;- 5 * X2 + rnorm(n, mean = 0, sd = 1)
+Y &lt;- 3 * X1 + 2 * X2 + rnorm(n, mean = 0, sd = 1)</code></pre>
+<p>The correlation coefficients among the three predictors are:</p>
+<pre class="r"><code>kable(cor(cbind(X1, X2, Z)), caption=&quot;Correlation of the predictors&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 1: </span>Correlation of the predictors</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">X1</th>
+<th align="right">X2</th>
+<th align="right">Z</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">X1</td>
+<td align="right">1.0000000</td>
+<td align="right">-0.0495321</td>
+<td align="right">-0.0730836</td>
+</tr>
+<tr class="even">
+<td align="left">X2</td>
+<td align="right">-0.0495321</td>
+<td align="right">1.0000000</td>
+<td align="right">0.9814767</td>
+</tr>
+<tr class="odd">
+<td align="left">Z</td>
+<td align="right">-0.0730836</td>
+<td align="right">0.9814767</td>
+<td align="right">1.0000000</td>
+</tr>
+</tbody>
+</table>
+<p>Now let’s fit two linear regression models: one with <code>X1</code> and <code>X2</code> as predictors, and another with <code>X1</code>, <code>X2</code>, and <code>Z</code> as predictors.
+We will then examine how the following metrics change: coefficients, standard errors, t-values, p-values, R-squared, adjusted R-squared.</p>
+<pre class="r"><code>fit1 &lt;- lm(Y ~ X1 + X2)
+fit2 &lt;- lm(Y ~ X1 + X2 + Z)
+coef_results &lt;- rbind(
+  tidy(fit1) %&gt;% mutate(model = &quot;fit1&quot;),
+  tidy(fit2) %&gt;% mutate(model = &quot;fit2&quot;)
+)
+# move model to the first column
+coef_results &lt;- coef_results %&gt;% select(model, everything())
+# now R-squared and adjusted R-squared
+rsq_results &lt;- rbind(
+  glance(fit1) %&gt;% mutate(model = &quot;fit1&quot;),
+  glance(fit2) %&gt;% mutate(model = &quot;fit2&quot;)
+) %&gt;%
+  select(model, everything())</code></pre>
+<pre class="r"><code>kable(coef_results, caption = &quot;The coefficients and statistics&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 2: </span>The coefficients and statistics</caption>
+<thead>
+<tr class="header">
+<th align="left">model</th>
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">fit1</td>
+<td align="left">(Intercept)</td>
+<td align="right">-0.0270771</td>
+<td align="right">0.1058626</td>
+<td align="right">-0.2557758</td>
+<td align="right">0.7986656</td>
+</tr>
+<tr class="even">
+<td align="left">fit1</td>
+<td align="left">X1</td>
+<td align="right">2.9521917</td>
+<td align="right">0.1154749</td>
+<td align="right">25.5656651</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="left">fit1</td>
+<td align="left">X2</td>
+<td align="right">2.0448517</td>
+<td align="right">0.1090059</td>
+<td align="right">18.7590842</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">fit2</td>
+<td align="left">(Intercept)</td>
+<td align="right">-0.0193261</td>
+<td align="right">0.1073437</td>
+<td align="right">-0.1800395</td>
+<td align="right">0.8575011</td>
+</tr>
+<tr class="odd">
+<td align="left">fit2</td>
+<td align="left">X1</td>
+<td align="right">2.9445494</td>
+<td align="right">0.1168766</td>
+<td align="right">25.1936688</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">fit2</td>
+<td align="left">X2</td>
+<td align="right">2.3331532</td>
+<td align="right">0.5743463</td>
+<td align="right">4.0622761</td>
+<td align="right">0.0000993</td>
+</tr>
+<tr class="odd">
+<td align="left">fit2</td>
+<td align="left">Z</td>
+<td align="right">-0.0573870</td>
+<td align="right">0.1122308</td>
+<td align="right">-0.5113302</td>
+<td align="right">0.6102939</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>kable(rsq_results, caption = &quot;The goodness of fit&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 2: </span>The goodness of fit</caption>
+<colgroup>
+<col width="5%" />
+<col width="8%" />
+<col width="12%" />
+<col width="7%" />
+<col width="8%" />
+<col width="7%" />
+<col width="2%" />
+<col width="8%" />
+<col width="7%" />
+<col width="7%" />
+<col width="7%" />
+<col width="10%" />
+<col width="4%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">model</th>
+<th align="right">r.squared</th>
+<th align="right">adj.r.squared</th>
+<th align="right">sigma</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+<th align="right">df</th>
+<th align="right">logLik</th>
+<th align="right">AIC</th>
+<th align="right">BIC</th>
+<th align="right">deviance</th>
+<th align="right">df.residual</th>
+<th align="right">nobs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">fit1</td>
+<td align="right">0.9082614</td>
+<td align="right">0.9063699</td>
+<td align="right">1.047502</td>
+<td align="right">480.1763</td>
+<td align="right">0</td>
+<td align="right">2</td>
+<td align="right">-145.0117</td>
+<td align="right">298.0234</td>
+<td align="right">308.4441</td>
+<td align="right">106.4342</td>
+<td align="right">97</td>
+<td align="right">100</td>
+</tr>
+<tr class="even">
+<td align="left">fit2</td>
+<td align="right">0.9085106</td>
+<td align="right">0.9056516</td>
+<td align="right">1.051513</td>
+<td align="right">317.7673</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">-144.8757</td>
+<td align="right">299.7514</td>
+<td align="right">312.7773</td>
+<td align="right">106.1452</td>
+<td align="right">96</td>
+<td align="right">100</td>
+</tr>
+</tbody>
+</table>
+<p>As the results show, the first model, <code>fit1</code>, roughly captures the true relationship in the simulated data,
+and both coefficients are highly statistically significant.</p>
+<p>Adding <code>Z</code> to the regression model produces several changes: (1) the coefficient for <code>X2</code>
+becomes smaller, (2) its standard error increases more than fivefold, and (3)
+the p-value for the coefficient test consequently increases substantially. Overall,
+the model’s R-squared changes little, but its AIC and BIC values increase,
+suggesting that the model with three predictors is less favorable than the model with two predictors.</p>
+<p>In summary, including a predictor that is highly correlated with an existing
+predictor reduces the statistical significance of the existing predictor.</p>
+</div>
+<div id="example-two-predictors-with-different-levels-of-correlation" class="section level2">
+<h2>Example: two predictors with different levels of correlation</h2>
+<p>Now let’s simulate datasets containing two variables with different levels of
+correlation. We will use <a href="https://en.wikipedia.org/wiki/Cholesky_decomposition">Cholesky decomposition</a>
+to simulate the data.</p>
+<p>First, let’s write a function that simulates data for a specified
+correlation coefficient:</p>
+<pre class="r"><code>simulate_correlated_data&lt;-function(rho, n=100, seed=NULL) {
+  if(is.null(seed)) {
+    seed &lt; Sys.time()
+  }
+  set.seed(seed)
+  x &lt;- rnorm(n)
+  z &lt;- rnorm(n)
+  y &lt;- rho*x + sqrt(1-rho^2)*z
+  return(cbind(x,y))
+}</code></pre>
+<p>Now let’s simulate five datasets with target correlations of
+0.1, 0.3, 0.5, 0.8, and 0.95 between the two predictors. We will also make both predictors
+contribute to the response variable so that we can examine how different levels of correlation
+affect the regression fit:</p>
+<pre class="r"><code>n&lt;-100
+rhos&lt;-c(0.1, 0.3, 0.5, 0.8, 0.95)
+simulated_data &lt;- lapply(rhos, simulate_correlated_data, n=n)
+# let&#39;s calculate the correlation coefficients for the simulated data
+simulated_rhos&lt;-sapply(simulated_data, function(d) cor(d[,&quot;x&quot;],d[, &quot;y&quot;]))
+kable(cbind(expected_rho=rhos, actual_rho=simulated_rhos))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">expected_rho</th>
+<th align="right">actual_rho</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.10</td>
+<td align="right">-0.0271945</td>
+</tr>
+<tr class="even">
+<td align="right">0.30</td>
+<td align="right">0.3337500</td>
+</tr>
+<tr class="odd">
+<td align="right">0.50</td>
+<td align="right">0.5365344</td>
+</tr>
+<tr class="even">
+<td align="right">0.80</td>
+<td align="right">0.8167663</td>
+</tr>
+<tr class="odd">
+<td align="right">0.95</td>
+<td align="right">0.9624687</td>
+</tr>
+</tbody>
+</table>
+<p>The correlation coefficient, rho, in each simulated dataset may not exactly
+match the specified value because of random sampling, but we can still examine how the level of correlation affects
+the regression.</p>
+<pre class="r"><code> fits &lt;- lapply(simulated_data, function(d) {
+          x1&lt;-d[,&quot;x&quot;]
+          x2&lt;-d[, &quot;y&quot;]
+          y &lt;- 10*x1 + 3*x2 + rnorm(n)
+          fit&lt;-lm(y~x1 + x2)
+          return(fit)
+          } 
+          )
+coef_results&lt;-lapply(seq_along(rhos),
+                     function(i) {
+                       tidy(fits[[i]]) %&gt;%
+                         mutate(rho = rhos[i]) %&gt;%
+                         select(rho, everything())
+                     }
+                     )
+coef_results &lt;- do.call(rbind, coef_results)
+kable(coef_results, caption = &quot;Regression statistics with different correlation strengths among predictors&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-8">Table 3: </span>Regression statistics with different correlation strengths among predictors</caption>
+<thead>
+<tr class="header">
+<th align="right">rho</th>
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.10</td>
+<td align="left">(Intercept)</td>
+<td align="right">0.1545731</td>
+<td align="right">0.1093261</td>
+<td align="right">1.4138713</td>
+<td align="right">0.1606012</td>
+</tr>
+<tr class="even">
+<td align="right">0.10</td>
+<td align="left">x1</td>
+<td align="right">10.0038407</td>
+<td align="right">0.1047198</td>
+<td align="right">95.5296414</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="right">0.10</td>
+<td align="left">x2</td>
+<td align="right">3.0724520</td>
+<td align="right">0.1118900</td>
+<td align="right">27.4595781</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="right">0.30</td>
+<td align="left">(Intercept)</td>
+<td align="right">0.0349345</td>
+<td align="right">0.1183168</td>
+<td align="right">0.2952627</td>
+<td align="right">0.7684243</td>
+</tr>
+<tr class="odd">
+<td align="right">0.30</td>
+<td align="left">x1</td>
+<td align="right">9.8936718</td>
+<td align="right">0.1339565</td>
+<td align="right">73.8573235</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="right">0.30</td>
+<td align="left">x2</td>
+<td align="right">3.0068927</td>
+<td align="right">0.1113956</td>
+<td align="right">26.9929282</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="right">0.50</td>
+<td align="left">(Intercept)</td>
+<td align="right">0.1417142</td>
+<td align="right">0.0972655</td>
+<td align="right">1.4569831</td>
+<td align="right">0.1483507</td>
+</tr>
+<tr class="even">
+<td align="right">0.50</td>
+<td align="left">x1</td>
+<td align="right">10.0727790</td>
+<td align="right">0.1156101</td>
+<td align="right">87.1271918</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="right">0.50</td>
+<td align="left">x2</td>
+<td align="right">2.9767374</td>
+<td align="right">0.1173528</td>
+<td align="right">25.3657122</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="right">0.80</td>
+<td align="left">(Intercept)</td>
+<td align="right">-0.0609381</td>
+<td align="right">0.0979742</td>
+<td align="right">-0.6219812</td>
+<td align="right">0.5354135</td>
+</tr>
+<tr class="odd">
+<td align="right">0.80</td>
+<td align="left">x1</td>
+<td align="right">10.3154854</td>
+<td align="right">0.1709446</td>
+<td align="right">60.3440164</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="right">0.80</td>
+<td align="left">x2</td>
+<td align="right">2.7154226</td>
+<td align="right">0.1638409</td>
+<td align="right">16.5735364</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="right">0.95</td>
+<td align="left">(Intercept)</td>
+<td align="right">-0.1158642</td>
+<td align="right">0.0971670</td>
+<td align="right">-1.1924234</td>
+<td align="right">0.2360041</td>
+</tr>
+<tr class="even">
+<td align="right">0.95</td>
+<td align="left">x1</td>
+<td align="right">10.0497393</td>
+<td align="right">0.3537788</td>
+<td align="right">28.4068467</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="right">0.95</td>
+<td align="left">x2</td>
+<td align="right">2.9023068</td>
+<td align="right">0.3443712</td>
+<td align="right">8.4278435</td>
+<td align="right">0.0000000</td>
+</tr>
+</tbody>
+</table>
+<p>Let’s plot all the metrics:</p>
+<pre class="r"><code>coef_results &lt;- coef_results %&gt;% 
+    mutate(rho = factor(rho)) %&gt;%
+    pivot_longer(
+      cols = estimate:p.value,
+      names_to = &quot;metric&quot;,
+      values_to = &quot;value&quot;
+    )</code></pre>
+<pre class="r"><code>plt &lt;- ggplot(coef_results, aes(x=rho, y=value)) +
+      geom_point(aes(color=term)) +
+      facet_wrap(~ metric, ncol=2, scales=&quot;free_y&quot;) +
+      theme(legend.position = &quot;top&quot;)
+plt</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" alt="" width="960" /></p>
+<p>The plots show the following patterns as the correlation between the predictors increases:</p>
+<ul>
+<li>The estimated coefficients change little, although some variation remains.</li>
+<li>The p-values for both predictors remain very small.</li>
+<li>The test statistics become smaller as rho increases.</li>
+<li>The standard errors increase as rho increases.</li>
+<li>Based on the last two observations, the p-values for the predictors should become larger, i.e., less significant.</li>
+</ul>
+<p>In summary, when the predictors in a regression are correlated, the test
+for each coefficient becomes less statistically significant, even though the magnitudes
+of the coefficients remain close to the values used to simulate the data.</p>
+</div>
+<div id="takeaways" class="section level2">
+<h2>Takeaways</h2>
+<ul>
+<li>When one predictor, <code>Z</code>, is a linear function of another predictor, <code>X</code>, and has no direct
+relationship with the response variable, including <code>Z</code> makes the test for the
+true predictor <code>X</code> less statistically significant. The coefficient for <code>Z</code>
+may not be significant because, after accounting for <code>X</code>, <code>Z</code> has no effect on <code>Y</code>.</li>
+<li>When two predictors both affect <code>Y</code>, the statistical significance of their
+coefficients decreases as the correlation between the predictors increases, even though the
+magnitudes of the coefficients may remain close to the true values.</li>
+</ul>
+<p>Taken together, these examples suggest that you may want to exclude certain variables from your regression unless you
+know they affect the response or want to examine the effects of other predictors
+after controlling for those variables.</p>
+</div>
