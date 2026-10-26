@@ -19,6 +19,11 @@ draft: false
 
 
 
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p><a href="https://en.wikipedia.org/wiki/Simpson%27s_paradox">Simpson’s paradox</a> occurs when the direction of an association reverses after data from several groups are combined. For example, A can have a higher success rate than B in every subgroup, yet a lower success rate overall.</p>
+<p>In this post, we will simulate exam outcomes in Python, examine the reversal using logistic regression and a plotnine figure, and explain why it happens. All Python code is embedded in this R Markdown document and runs through <a href="https://rstudio.github.io/reticulate/articles/r_markdown.html">reticulate</a>.</p>
+</div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
 <p>You can skip this section unless you want to run the code yourself.</p>
@@ -29,11 +34,6 @@ draft: false
 <p>Install the Python packages in the same environment. In the command below, replace <code>python</code> with your chosen executable if necessary:</p>
 <pre class="bash"><code>python -m pip install numpy pandas plotnine</code></pre>
 <p>You will also need statsmodels for the regression models below. Reticulate runs all Python chunks in a shared session, so objects created in one chunk remain available in subsequent chunks.</p>
-</div>
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
-<p><a href="https://en.wikipedia.org/wiki/Simpson%27s_paradox">Simpson’s paradox</a> occurs when the direction of an association reverses after data from several groups are combined. For example, A can have a higher success rate than B in every subgroup, yet a lower success rate overall.</p>
-<p>In this post, we will simulate exam outcomes in Python, examine the reversal using logistic regression and a plotnine figure, and explain why it happens. All Python code is embedded in this R Markdown document and runs through <a href="https://rstudio.github.io/reticulate/articles/r_markdown.html">reticulate</a>.</p>
 </div>
 <div id="a-simulated-example-with-a-confounding-factor" class="section level2">
 <h2>A simulated example with a confounding factor</h2>
@@ -127,7 +127,7 @@ Dep. Variable:                 passed   No. Observations:                20000
 Model:                          Logit   Df Residuals:                    19998
 Method:                           MLE   Df Model:                            1
 Date:                Sun, 25 Oct 2026   Pseudo R-squ.:                 0.07323
-Time:                        22:10:32   Log-Likelihood:                -12511.
+Time:                        22:15:47   Log-Likelihood:                -12511.
 converged:                       True   LL-Null:                       -13499.
 Covariance Type:            nonrobust   LLR p-value:                     0.000
 ===================================================================================
@@ -146,7 +146,7 @@ Dep. Variable:                 passed   No. Observations:                20000
 Model:                          Logit   Df Residuals:                    19997
 Method:                           MLE   Df Model:                            2
 Date:                Sun, 25 Oct 2026   Pseudo R-squ.:                  0.1441
-Time:                        22:10:33   Log-Likelihood:                -11554.
+Time:                        22:15:47   Log-Likelihood:                -11554.
 converged:                       True   LL-Null:                       -13499.
 Covariance Type:            nonrobust   LLR p-value:                     0.000
 =========================================================================================

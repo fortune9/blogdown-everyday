@@ -17,6 +17,13 @@ comment: true
 draft: false
 ---
 
+
+## Introduction
+
+[Simpson's paradox](https://en.wikipedia.org/wiki/Simpson%27s_paradox) occurs when the direction of an association reverses after data from several groups are combined. For example, A can have a higher success rate than B in every subgroup, yet a lower success rate overall.
+
+In this post, we will simulate exam outcomes in Python, examine the reversal using logistic regression and a plotnine figure, and explain why it happens. All Python code is embedded in this R Markdown document and runs through [reticulate](https://rstudio.github.io/reticulate/articles/r_markdown.html).
+
 ## Setup
 
 You can skip this section unless you want to run the code yourself.
@@ -44,12 +51,6 @@ python -m pip install numpy pandas plotnine
 ```
 
 You will also need statsmodels for the regression models below. Reticulate runs all Python chunks in a shared session, so objects created in one chunk remain available in subsequent chunks.
-
-## Introduction
-
-[Simpson's paradox](https://en.wikipedia.org/wiki/Simpson%27s_paradox) occurs when the direction of an association reverses after data from several groups are combined. For example, A can have a higher success rate than B in every subgroup, yet a lower success rate overall.
-
-In this post, we will simulate exam outcomes in Python, examine the reversal using logistic regression and a plotnine figure, and explain why it happens. All Python code is embedded in this R Markdown document and runs through [reticulate](https://rstudio.github.io/reticulate/articles/r_markdown.html).
 
 ## A simulated example with a confounding factor
 
